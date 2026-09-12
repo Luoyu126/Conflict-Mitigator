@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { TokenVerifier, TrackSource } from "livekit-server-sdk";
 import { validateJoin, isLocalRequest, issueDebugToken } from "../lib/token.ts";
-import { summarizeAudioReport } from "../lib/stats.ts";
+import { summarizeAudioReport, summarizeVideoReport } from "../lib/stats.ts";
 
 test("debug input cannot choose an identity, grants, or arbitrary room namespace", () => {
   assert.deepEqual(validateJoin({ room: " test-1 ", name: " Alice " }), { room: "test-1", name: "Alice" });
@@ -23,7 +23,7 @@ test("token endpoint allows only loopback, same-origin browser requests", () => 
   assert.equal(isLocalRequest(request("localhost:3001", "http://localhost:3002")), false);
 });
 
-test("temporary tokens are microphone-only, room-bound and unique", async () => {
+test("temporary tokens are camera-and-microphone-only, room-bound and unique", async () => {
   const config = { url: "wss://example.livekit.cloud", key: "test-key", secret: "test-secret-only-not-a-real-credential" };
   const first = await issueDebugToken({ room: "trial", name: "Alice" }, config);
   const second = await issueDebugToken({ room: "trial", name: "Alice" }, config);
@@ -31,7 +31,7 @@ test("temporary tokens are microphone-only, room-bound and unique", async () => 
   assert.equal(claims.sub, first.identity);
   assert.notEqual(first.identity, second.identity);
   assert.equal(claims.video.room, "debug-audio-trial");
-  assert.deepEqual(claims.video.canPublishSources, ["microphone"]);
+  assert.deepEqual(claims.video.canPublishSources, ["microphone", "camera"]);
   assert.equal(claims.video.canPublishData, false);
   assert.equal(claims.video.roomAdmin, undefined);
   assert.ok(claims.exp - claims.nbf <= 600);
@@ -55,4 +55,22 @@ test("audio stats preserve missing values and convert seconds to milliseconds", 
   ]);
   assert.equal(send.rttMs, 80);
   assert.equal(send.jitterMs, undefined);
+});
+
+test("video stats keep simulcast layers separate and preserve missing decode values", () => {
+  const rows = summarizeVideoReport([
+    { type: "outbound-rtp", kind: "video", frameWidth: 1280, frameHeight: 720, framesPerSecond: 30, remoteId: "r" },
+    { type: "outbound-rtp", kind: "video", frameWidth: 640, frameHeight: 360 },
+    { type: "remote-inbound-rtp", id: "r", roundTripTime: .04 },
+    { type: "inbound-rtp", kind: "audio" },
+  ]);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].width, 1280);
+  assert.equal(rows[0].rttMs, 40);
+  assert.equal(rows[1].fps, undefined);
+  assert.equal(rows[0].decodeMeanMs, undefined);
+  const [receive] = summarizeVideoReport([{ type: "inbound-rtp", kind: "video", totalDecodeTime: .2, framesDecoded: 100, jitterBufferDelay: 3, jitterBufferEmittedCount: 100 }]);
+  assert.equal(receive.decodeMeanMs, 2);
+  assert.equal(receive.bufferMeanMs, 30);
+  assert.deepEqual(summarizeVideoReport([]), []);
 });

@@ -1,0 +1,4 @@
+# Copy to debug/.env.faceplusplus.local and fill in your own credentials.
+FACEPLUSPLUS_API_KEY=replace-with-your-api-key
+FACEPLUSPLUS_API_SECRET=replace-with-your-api-secret
+FACEPLUSPLUS_REGION=us

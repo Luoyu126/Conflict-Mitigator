@@ -46,7 +46,7 @@ export async function issueDebugToken(
   });
   token.addGrant({
     roomJoin: true, room: roomName, canSubscribe: true,
-    canPublish: true, canPublishSources: [TrackSource.MICROPHONE],
+    canPublish: true, canPublishSources: [TrackSource.MICROPHONE, TrackSource.CAMERA],
     canPublishData: false, canUpdateOwnMetadata: false,
   });
   return { serverUrl: url.toString(), participantToken: await token.toJwt(), roomName, identity };

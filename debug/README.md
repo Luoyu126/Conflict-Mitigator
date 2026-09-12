@@ -1,4 +1,4 @@
-# LiveKit 音频实验室（仅本地）
+# LiveKit 音视频实验室（仅本地）
 
 独立的临时 Next.js 应用，验证 LiveKit 官方 React 组件的多人语音、连接耗时和音质。
 使用 `LiveKitRoom`、`RoomAudioRenderer`、`ControlBar`、`StartAudio` 及参与者 Hooks。
@@ -10,7 +10,7 @@
 需要 Node.js 22.18+ 或 24。另一台电脑首次使用时：
 
 ```bash
-git clone --branch debug --single-branch https://github.com/Luoyu126/Conflict-Mitigator.git
+git clone --branch feat/livekit-camera-emotion --single-branch https://github.com/Luoyu126/Conflict-Mitigator.git
 cd Conflict-Mitigator
 ```
 
@@ -73,7 +73,7 @@ npm --prefix debug run dev
 
 ## 实验边界
 
-临时 token 有效期 10 分钟，仅允许加入指定测试房间、发布麦克风和订阅；每次入会随机生成身份。
+临时 token 有效期 10 分钟，仅允许加入指定测试房间、发布麦克风、摄像头和订阅；每次入会随机生成身份。
 token 到期不等于已建立的媒体连接自动终止。该 token 接口没有正式登录，仅在启动器开启的 development 模式
 且请求为本机同源时工作，不应部署或公开代理。它不测试正式会议权限、人数限制或调解隔离。
 真实通话会经过 LiveKit Cloud 并产生项目用量。
@@ -92,3 +92,64 @@ npm run lint
 官方文档：[LiveKitRoom](https://docs.livekit.io/reference/components/react/component/livekitroom/)、
 [RoomAudioRenderer](https://docs.livekit.io/reference/components/react/component/roomaudiorenderer/)、
 [麦克风发布](https://docs.livekit.io/transport/media/publish/)。
+
+## 摄像头与画面延迟测试
+
+仍使用 http://localhost:3001 和相同的 `debug-audio-` 测试房间前缀，兼容原语音测试。
+入会前选择 720p / 30 fps 或 360p / 20 fps；这些是目标预设，实际值以统计为准。
+入会默认关闭摄像头和麦克风，使用控制栏手动开启或切换设备。退出释放媒体轨道。
+画面通过官方 VideoTrack 渲染；本机画面仅为预览，远端画面才经过 LiveKit。
+不录像、不保存画面；Face++ 分析需要另行同意开启。视频会增加 LiveKit Cloud 项目流量。
+
+1. 两个窗口用不同名字进入同一房间，A 开摄像头，B 保持设备关闭，观察 A 的远端画面。
+2. A 摄像头拍摄毫秒秒表，用手机同时拍到原始秒表和 B 收到的画面，比较同一照片中的两个读数。
+3. 多次取样估计端到端画面延迟；包括摄像头采集、编码、网络、解码及显示，受屏幕刷新和拍照精度影响。
+4. 退出重进对比两种分辨率；真正跨设备表现请用两台电脑测试。同机双窗口会共享 CPU 和网络。
+
+视频统计每两秒更新，包含每路编码的分辨率、帧率、RTT、抖动、丢包、接收丢帧和累计平均解码 / 缓冲耗时。
+Simulcast 每路分行显示，码率为轨道总码率，不能按行相加。缺失字段显示 `—`。
+RTT 不是端到端延迟，也不能用 RTT / 2 加缓冲和解码均值推算真实单程延迟。
+
+官方视频组件说明：https://docs.livekit.io/reference/components/react/concepts/rendering-video/
+
+## Face++ 摄像头表情实验
+
+在 `debug/.env.faceplusplus.local` 配置 `FACEPLUSPLUS_API_KEY`、`FACEPLUSPLUS_API_SECRET`，
+可选 `FACEPLUSPLUS_REGION=us`（默认）或 `cn`，必须匹配账号区域。
+该文件被 Git 忽略，仅服务端读取；不要提交实际密钥。可参考 `debug/faceplusplus-env.example`。
+本地接口每次请求读取此文件，不需要为了更新密钥重启服务。
+
+加入房间并开启自己的摄像头后，点击“同意并开始表情分析”。仅发送本人的画面，
+远端参与者卡片不提供分析按钮。每次将长边不超过 640px 的 JPEG 发往 Face++ Detect API，
+仅请求 `emotion,blur`；请求完成后至少等待 1.2 秒，不并发积压。
+不保存图片、不返回 face_token / image_id，不做身份识别。Face++ 服务端的数据处理依其服务条款。
+默认关闭；停止、关闭摄像头或退出会议会取消等待与本地请求、清除结果。
+已发送至供应商的请求无法撤回。失败或限流时停止，用户可手动重试。
+
+显示七类表情分数（0–100）、服务端请求往返耗时和浏览器本次采样至结果耗时。
+分数不是人的真实心理状态，耗时不是纯模型推理时间或 LiveKit 视频延迟。
+无脸、多脸、模糊或缺少有效分数显示无法判断，不把缺失当成“平静”。
+测试代理 `/api/face-emotion` 仅限 development、本机同源和显式分析确认标记；
+它不是正式 API-27，不写数据库。下方的 VAD 映射只生成实验强度，不写入正式 emotionIntensity 或 contentionScore。
+
+官方接口文档：https://console.faceplusplus.com/documents/5679127
+
+### VAD 三维情绪向量（实验）
+
+视频右上角显示小型三维向量浮层，支持拖动、方向键旋转和重置视角；坐标、强度及参数保留在下方。
+X 是正负倾向 [-1,1]，Y 是激活程度 [0,1]，Z 是掌控感 [-1,1]。
+七类分数归一化后，对 `debug/lib/vad.ts` 的参考点加权；参考点为设计假设，
+尤其掌控感不是 Face++ 直接测量值，不能当成已验证心理测量结果。
+当前版本 `facepp-vad-experiment-v1`；参数在面板“查看实验映射参数”中公开。
+
+强度公式为 `sqrt(0.15 * V² + 0.70 * A² + 0.15 * D²)`，范围 0–1。
+中性参考为原点；正向激动也可能获得高分，不表示冲突或生气。
+分数与坐标来自最新有效采样，400ms 插值仅用于向量动画，不产生新观测；
+尊重系统减少动画设置。轨迹仅保留内存中的近 30 秒、最多 24 个有效采样，
+无效结果或长时间间断重置轨迹，不连线冒充连续观测。
+
+从浏览器抽帧时刻计，超过 6 秒未更新的采样显示过期并隐藏向量、显示未知分数。
+无脸、多脸、低质量、无有效分数、停止或关闭摄像头都不以 0 替代未知。
+当前不增加第三方请求，不写数据库，不修改正式 API 契约。
+实验分数只作为未来 `VisualAffectResult.intensity` 的候选；正式 `emotionIntensity`
+仍需后续服务结合本人同时间段文本证据融合，不能直接写 `contentionScore`。

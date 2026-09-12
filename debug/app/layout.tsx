@@ -3,7 +3,7 @@ import "@livekit/components-styles";
 import "./style.css";
 
 export const metadata: Metadata = {
-  title: "LiveKit 音频实验室",
+  title: "LiveKit 音视频实验室",
   robots: { index: false, follow: false },
 };
 
