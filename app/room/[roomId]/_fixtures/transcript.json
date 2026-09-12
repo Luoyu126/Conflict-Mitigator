@@ -1,0 +1,629 @@
+{
+  "mockMeta": {
+    "source": "Core Product WG (2024-08-13 10:02 GMT-4) – Transcript.docx",
+    "durationMs": 2690000,
+    "timingMode": "interpolated_from_5_minute_markers",
+    "contentMode": "curated_representative_segments",
+    "statusTransitionsAreSynthetic": true,
+    "notes": "The source provides timestamps at five-minute intervals rather than per utterance. startedAtMs values are approximate and intended for UI replay. Synthetic mediation transitions exercise the frontend state model."
+  },
+  "roomId": "11111111-1111-1111-1111-111111111111",
+  "participants": [
+    {
+      "id": "20000000-0000-4000-8000-000000000001",
+      "displayName": "Chelsea Rathbun"
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000002",
+      "displayName": "Ali Hugo"
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000003",
+      "displayName": "Sarina Canelake"
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000004",
+      "displayName": "Jenna Makowski"
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000005",
+      "displayName": "Glib Glugovskiy"
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000006",
+      "displayName": "Cassie Zamparini"
+    },
+    {
+      "id": "20000000-0000-4000-8000-000000000007",
+      "displayName": "Santiago Suarez"
+    }
+  ],
+  "transcriptSegments": [
+    {
+      "id": "40000000-0000-4000-8000-000000000001",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000001",
+      "speaker": "Chelsea Rathbun",
+      "content": "We're going to start with the product proposals board review.",
+      "startedAtMs": 45000,
+      "endedAtMs": 50000,
+      "isFinal": true,
+      "sourceParagraph": 8
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000002",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000001",
+      "speaker": "Chelsea Rathbun",
+      "content": "We have some new proposals that have no status. Does anyone want to claim them?",
+      "startedAtMs": 65000,
+      "endedAtMs": 72000,
+      "isFinal": true,
+      "sourceParagraph": 9
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000003",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000002",
+      "speaker": "Ali Hugo",
+      "content": "I need to take a look at my capacity and core contributor hours before I volunteer for anything.",
+      "startedAtMs": 115000,
+      "endedAtMs": 124000,
+      "isFinal": true,
+      "sourceParagraph": 15
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000004",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000003",
+      "speaker": "Sarina Canelake",
+      "content": "I have a slight concern around capacity. We already have twelve proposals in review, two new, and eleven on hold.",
+      "startedAtMs": 145000,
+      "endedAtMs": 157000,
+      "isFinal": true,
+      "sourceParagraph": 17
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000005",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000001",
+      "speaker": "Chelsea Rathbun",
+      "content": "I generally agree in terms of limiting work in progress. Maybe we focus on tackling items already in review first.",
+      "startedAtMs": 205000,
+      "endedAtMs": 216000,
+      "isFinal": true,
+      "sourceParagraph": 27
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000006",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000002",
+      "speaker": "Ali Hugo",
+      "content": "There are disagreements about how many items a clipboard can hold. I'm not sure how to proceed with a disagreement like that.",
+      "startedAtMs": 350000,
+      "endedAtMs": 362000,
+      "isFinal": true,
+      "sourceParagraph": 51
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000007",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000001",
+      "speaker": "Chelsea Rathbun",
+      "content": "Do we have user research about whether this causes confusion? Testing could show how it should be implemented.",
+      "startedAtMs": 375000,
+      "endedAtMs": 388000,
+      "isFinal": true,
+      "sourceParagraph": 52
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000008",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "We can build user discovery into the first phase: designs followed by usability feedback. We don't have to decide the item limit now.",
+      "startedAtMs": 420000,
+      "endedAtMs": 436000,
+      "isFinal": true,
+      "sourceParagraph": 55
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000009",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000005",
+      "speaker": "Glib Glugovskiy",
+      "content": "It would be good to do a proper UX review and user testing first, then move to the final implementation idea.",
+      "startedAtMs": 500000,
+      "endedAtMs": 512000,
+      "isFinal": true,
+      "sourceParagraph": 59
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000010",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "I would move the clipboard proposal to backlog.",
+      "startedAtMs": 620000,
+      "endedAtMs": 624000,
+      "isFinal": true,
+      "sourceParagraph": 69
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000011",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "There may be value in breaking the backlog into a more nuanced status: projects that are funded and projects that are not.",
+      "startedAtMs": 675000,
+      "endedAtMs": 688000,
+      "isFinal": true,
+      "sourceParagraph": 72
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000012",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000003",
+      "speaker": "Sarina Canelake",
+      "content": "On deck sounds like it already has a team and is next for development.",
+      "startedAtMs": 730000,
+      "endedAtMs": 738000,
+      "isFinal": true,
+      "sourceParagraph": 80
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000013",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "Maybe the status should be 'approved, needs resourcing'.",
+      "startedAtMs": 755000,
+      "endedAtMs": 760000,
+      "isFinal": true,
+      "sourceParagraph": 84
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000014",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000007",
+      "speaker": "Santiago Suarez",
+      "content": "I like 'please work on it'. It is simple, understandable, and acts as a call to action.",
+      "startedAtMs": 780000,
+      "endedAtMs": 789000,
+      "isFinal": true,
+      "sourceParagraph": 91
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000015",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "I'll take an action item to break this out for the next meeting.",
+      "startedAtMs": 795000,
+      "endedAtMs": 801000,
+      "isFinal": true,
+      "sourceParagraph": 92
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000016",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000001",
+      "speaker": "Chelsea Rathbun",
+      "content": "When a product proposal is accepted, should it be added to the community release plan as a new row?",
+      "startedAtMs": 980000,
+      "endedAtMs": 990000,
+      "isFinal": true,
+      "sourceParagraph": 122
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000017",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "Proposals should go on the sheet only if they are resourced and we know who the team is.",
+      "startedAtMs": 1030000,
+      "endedAtMs": 1039000,
+      "isFinal": true,
+      "sourceParagraph": 124
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000018",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "We can add a placeholder during review, then update it during the monthly release-planning cycle.",
+      "startedAtMs": 1095000,
+      "endedAtMs": 1104000,
+      "isFinal": true,
+      "sourceParagraph": 130
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000019",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000005",
+      "speaker": "Glib Glugovskiy",
+      "content": "Editors should use personal filter views so view-only users can still see the complete planning horizon.",
+      "startedAtMs": 1230000,
+      "endedAtMs": 1241000,
+      "isFinal": true,
+      "sourceParagraph": 140
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000020",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000006",
+      "speaker": "Cassie Zamparini",
+      "content": "I've been working on the product review process and cleaning it up. I'll run through it briefly.",
+      "startedAtMs": 1450000,
+      "endedAtMs": 1458000,
+      "isFinal": true,
+      "sourceParagraph": 153
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000021",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000006",
+      "speaker": "Cassie Zamparini",
+      "content": "I tried to keep it concise while putting as much information as possible into one document, so we have one source of truth.",
+      "startedAtMs": 1530000,
+      "endedAtMs": 1544000,
+      "isFinal": true,
+      "sourceParagraph": 157
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000022",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000002",
+      "speaker": "Ali Hugo",
+      "content": "This is much better. It looks much easier to follow.",
+      "startedAtMs": 1580000,
+      "endedAtMs": 1586000,
+      "isFinal": true,
+      "sourceParagraph": 160
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000023",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000003",
+      "speaker": "Sarina Canelake",
+      "content": "I didn't really understand all the labels and statuses. It would be good to build consensus around what they mean.",
+      "startedAtMs": 1760000,
+      "endedAtMs": 1772000,
+      "isFinal": true,
+      "sourceParagraph": 174
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000024",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "This is a good opportunity to align and simplify the labels as much as possible.",
+      "startedAtMs": 1810000,
+      "endedAtMs": 1817000,
+      "isFinal": true,
+      "sourceParagraph": 180
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000025",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "The action item is to review the labels, align them with current roadmap usage, and simplify from there.",
+      "startedAtMs": 1920000,
+      "endedAtMs": 1930000,
+      "isFinal": true,
+      "sourceParagraph": 189
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000026",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000005",
+      "speaker": "Glib Glugovskiy",
+      "content": "How should the product working group be involved in the Open edX Marketplace proposal?",
+      "startedAtMs": 2050000,
+      "endedAtMs": 2059000,
+      "isFinal": true,
+      "sourceParagraph": 193
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000027",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000004",
+      "speaker": "Jenna Makowski",
+      "content": "Please present the proposal to this group. We need to align it with the XBlock and LTI configuration projects.",
+      "startedAtMs": 2180000,
+      "endedAtMs": 2192000,
+      "isFinal": true,
+      "sourceParagraph": 199
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000028",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000005",
+      "speaker": "Glib Glugovskiy",
+      "content": "I can prepare a more detailed presentation focused on product categories and how the Marketplace should be populated.",
+      "startedAtMs": 2240000,
+      "endedAtMs": 2251000,
+      "isFinal": true,
+      "sourceParagraph": 201
+    },
+    {
+      "id": "40000000-0000-4000-8000-000000000029",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "participantId": "20000000-0000-4000-8000-000000000005",
+      "speaker": "Glib Glugovskiy",
+      "content": "Tutor plugins may be the main extension mechanism. The product group can help categorize and describe modules so the Marketplace is usable for the community.",
+      "startedAtMs": 2470000,
+      "endedAtMs": 2486000,
+      "isFinal": true,
+      "sourceParagraph": 206
+    }
+  ],
+  "mindMapEvents": [
+    {
+      "atMs": 45000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000001",
+      "patch": {
+        "parentNodeId": null,
+        "topic": "Core Product Working Group",
+        "summary": "Meeting started with a review of the product proposal board.",
+        "status": "normal",
+        "contentionScore": 0.05,
+        "readinessScore": null,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 65000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000002",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000001",
+        "topic": "Product proposal board review",
+        "summary": "Reviewing new proposals and items without status.",
+        "status": "normal",
+        "contentionScore": 0.12,
+        "readinessScore": null,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 145000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000003",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000002",
+        "topic": "Work-in-progress capacity",
+        "summary": "Concern about assigning more work while many proposals remain in review or on hold.",
+        "status": "heated",
+        "contentionScore": 0.63,
+        "readinessScore": 0.31,
+        "discussionLoopCount": 1
+      }
+    },
+    {
+      "atMs": 216000,
+      "operation": "update",
+      "nodeId": "30000000-0000-4000-8000-000000000003",
+      "patch": {
+        "summary": "The group agreed to limit work in progress and focus on items already in review.",
+        "status": "ready_to_resume",
+        "contentionScore": 0.48,
+        "readinessScore": 0.77
+      }
+    },
+    {
+      "atMs": 350000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000004",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000002",
+        "topic": "Course element clipboard scope",
+        "summary": "Disagreement over whether the clipboard should support one or multiple items.",
+        "status": "heated",
+        "contentionScore": 0.82,
+        "readinessScore": 0.22,
+        "discussionLoopCount": 2
+      }
+    },
+    {
+      "atMs": 390000,
+      "operation": "update",
+      "nodeId": "30000000-0000-4000-8000-000000000004",
+      "demoOnly": true,
+      "patch": {
+        "status": "private_mediation",
+        "contentionScore": 0.86,
+        "readinessScore": 0.28
+      }
+    },
+    {
+      "atMs": 420000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000005",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000004",
+        "topic": "Prototype and usability research",
+        "summary": "Use designs and usability feedback to decide the final clipboard behavior.",
+        "status": "normal",
+        "contentionScore": 0.18,
+        "readinessScore": 0.74,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 512000,
+      "operation": "update",
+      "nodeId": "30000000-0000-4000-8000-000000000004",
+      "patch": {
+        "summary": "The group agreed to resolve the scope through prototype-based usability research in the first phase.",
+        "status": "ready_to_resume",
+        "contentionScore": 0.66,
+        "readinessScore": 0.86
+      }
+    },
+    {
+      "atMs": 675000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000006",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000002",
+        "topic": "Roadmap status vocabulary",
+        "summary": "The group is deciding how to label approved proposals with and without delivery teams.",
+        "status": "heated",
+        "contentionScore": 0.71,
+        "readinessScore": 0.43,
+        "discussionLoopCount": 3
+      }
+    },
+    {
+      "atMs": 801000,
+      "operation": "update",
+      "nodeId": "30000000-0000-4000-8000-000000000006",
+      "patch": {
+        "summary": "Candidate labels include 'needs team' and 'please work on this'; Jenna will prepare a proposal for the next meeting.",
+        "status": "heated",
+        "contentionScore": 0.71,
+        "readinessScore": 0.68
+      }
+    },
+    {
+      "atMs": 980000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000007",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000001",
+        "topic": "Community release planning",
+        "summary": "Clarifying how accepted proposals enter the community release plan.",
+        "status": "normal",
+        "contentionScore": 0.24,
+        "readinessScore": null,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 1030000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000008",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000007",
+        "topic": "Proposal-to-release-plan handoff",
+        "summary": "Add proposals when they are resourced and their delivery team is known.",
+        "status": "ready_to_resume",
+        "contentionScore": 0.22,
+        "readinessScore": 0.91,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 1230000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000009",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000007",
+        "topic": "Shared planning sheet filters",
+        "summary": "Use personal filter views so public viewers see the complete planning horizon.",
+        "status": "normal",
+        "contentionScore": 0.19,
+        "readinessScore": 0.88,
+        "discussionLoopCount": 1
+      }
+    },
+    {
+      "atMs": 1450000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000010",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000001",
+        "topic": "Product review process cleanup",
+        "summary": "A shorter, step-by-step product review document was presented.",
+        "status": "normal",
+        "contentionScore": 0.14,
+        "readinessScore": null,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 1544000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000011",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000010",
+        "topic": "One source of truth",
+        "summary": "Keep definitions, labels, ownership, and review steps in one document.",
+        "status": "normal",
+        "contentionScore": 0.08,
+        "readinessScore": 0.94,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 1760000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000012",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000010",
+        "topic": "Labels and statuses simplification",
+        "summary": "Current labels and statuses are difficult to understand and need consensus.",
+        "status": "heated",
+        "contentionScore": 0.69,
+        "readinessScore": 0.46,
+        "discussionLoopCount": 2
+      }
+    },
+    {
+      "atMs": 1930000,
+      "operation": "update",
+      "nodeId": "30000000-0000-4000-8000-000000000012",
+      "patch": {
+        "summary": "Jenna will align the labels with current roadmap usage and recommend a simpler set.",
+        "status": "ready_to_resume",
+        "contentionScore": 0.58,
+        "readinessScore": 0.83
+      }
+    },
+    {
+      "atMs": 2050000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000013",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000001",
+        "topic": "Open edX Marketplace",
+        "summary": "Discussing product-group involvement in a marketplace for extensions and plugins.",
+        "status": "normal",
+        "contentionScore": 0.27,
+        "readinessScore": null,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 2192000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000014",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000013",
+        "topic": "Working-group collaboration",
+        "summary": "Present the proposal to the product group and align it with XBlock and LTI configuration work.",
+        "status": "ready_to_resume",
+        "contentionScore": 0.17,
+        "readinessScore": 0.9,
+        "discussionLoopCount": 0
+      }
+    },
+    {
+      "atMs": 2486000,
+      "operation": "upsert",
+      "nodeId": "30000000-0000-4000-8000-000000000015",
+      "patch": {
+        "parentNodeId": "30000000-0000-4000-8000-000000000013",
+        "topic": "Plugin architecture and categorization",
+        "summary": "Tutor plugins may provide the extension mechanism; product input is needed to make categories understandable to users.",
+        "status": "normal",
+        "contentionScore": 0.34,
+        "readinessScore": 0.61,
+        "discussionLoopCount": 1
+      }
+    }
+  ]
+}

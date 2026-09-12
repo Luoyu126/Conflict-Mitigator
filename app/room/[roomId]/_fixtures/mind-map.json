@@ -1,0 +1,245 @@
+{
+  "mockMeta": {
+    "source": "Core Product WG (2024-08-13 10:02 GMT-4) – Transcript.docx",
+    "generatedFor": "Mind Map frontend preview",
+    "snapshotAtMs": 2690000,
+    "statusTransitionsAreSynthetic": true,
+    "notes": "Topics and summaries are inferred from the transcript. Demo status transitions are UI fixtures and do not claim that private mediation occurred in the source meeting."
+  },
+  "roomId": "11111111-1111-1111-1111-111111111111",
+  "updatedAt": "2024-08-13T14:46:50.000Z",
+  "nodes": [
+    {
+      "id": "30000000-0000-4000-8000-000000000001",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": null,
+      "topic": "Core Product Working Group",
+      "summary": "The group reviewed product proposals, release planning, the product review process, and the Open edX Marketplace proposal.",
+      "status": "normal",
+      "contentionScore": 0.18,
+      "readinessScore": null,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000001",
+        "40000000-0000-4000-8000-000000000026"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000002",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000001",
+      "topic": "Product proposal board review",
+      "summary": "The group reviewed new and in-review proposals, moved several items, and discussed limiting work in progress.",
+      "status": "normal",
+      "contentionScore": 0.31,
+      "readinessScore": null,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000001",
+        "40000000-0000-4000-8000-000000000002"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000003",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000002",
+      "topic": "Work-in-progress capacity",
+      "summary": "Participants raised concerns about assigning more proposals while twelve items were already in review and eleven were on hold.",
+      "status": "normal",
+      "contentionScore": 0.48,
+      "readinessScore": 0.77,
+      "discussionLoopCount": 1,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000003",
+        "40000000-0000-4000-8000-000000000004"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000004",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000002",
+      "topic": "Course element clipboard scope",
+      "summary": "The proposal had disagreement over supporting one or multiple clipboard items. The group agreed to resolve it through prototype-based usability research in the design phase.",
+      "status": "ready_to_resume",
+      "contentionScore": 0.66,
+      "readinessScore": 0.86,
+      "discussionLoopCount": 2,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000006",
+        "40000000-0000-4000-8000-000000000007",
+        "40000000-0000-4000-8000-000000000008",
+        "40000000-0000-4000-8000-000000000009"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000005",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000004",
+      "topic": "Prototype and usability research",
+      "summary": "Build the user test into the first project phase, validate the designs, and use the findings to determine the final implementation.",
+      "status": "normal",
+      "contentionScore": 0.12,
+      "readinessScore": 0.92,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000007",
+        "40000000-0000-4000-8000-000000000008",
+        "40000000-0000-4000-8000-000000000009"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000006",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000002",
+      "topic": "Roadmap status vocabulary",
+      "summary": "The team debated how to distinguish approved proposals that have a delivery team from proposals that still need resourcing. Candidate labels included 'needs team' and 'please work on this'.",
+      "status": "heated",
+      "contentionScore": 0.71,
+      "readinessScore": 0.68,
+      "discussionLoopCount": 3,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000011",
+        "40000000-0000-4000-8000-000000000012",
+        "40000000-0000-4000-8000-000000000013",
+        "40000000-0000-4000-8000-000000000014",
+        "40000000-0000-4000-8000-000000000015"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000007",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000001",
+      "topic": "Community release planning",
+      "summary": "The group clarified when accepted product proposals should be added to the community release plan and how the planning sheet should be maintained.",
+      "status": "normal",
+      "contentionScore": 0.24,
+      "readinessScore": null,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000016",
+        "40000000-0000-4000-8000-000000000017"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000008",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000007",
+      "topic": "Proposal-to-release-plan handoff",
+      "summary": "Add a proposal to the release plan once it is resourced; placeholders can be added during review and updated in the monthly planning cycle.",
+      "status": "ready_to_resume",
+      "contentionScore": 0.22,
+      "readinessScore": 0.91,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000016",
+        "40000000-0000-4000-8000-000000000017",
+        "40000000-0000-4000-8000-000000000018"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000009",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000007",
+      "topic": "Shared planning sheet filters",
+      "summary": "Editors should use personal filter views so viewers can still see the complete two-release planning horizon.",
+      "status": "normal",
+      "contentionScore": 0.19,
+      "readinessScore": 0.88,
+      "discussionLoopCount": 1,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000019"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000010",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000001",
+      "topic": "Product review process cleanup",
+      "summary": "Cassie presented a shorter, collapsible step-by-step review process with clearer ownership and navigation.",
+      "status": "normal",
+      "contentionScore": 0.14,
+      "readinessScore": null,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000020",
+        "40000000-0000-4000-8000-000000000021",
+        "40000000-0000-4000-8000-000000000022"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000011",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000010",
+      "topic": "One source of truth",
+      "summary": "Keep definitions, labels, responsibilities, and review steps together to reduce navigation between documents.",
+      "status": "normal",
+      "contentionScore": 0.08,
+      "readinessScore": 0.94,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000021"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000012",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000010",
+      "topic": "Labels and statuses simplification",
+      "summary": "The group wanted status language that is accessible beyond technical teams. Jenna agreed to review current usage and recommend a simpler set.",
+      "status": "ready_to_resume",
+      "contentionScore": 0.58,
+      "readinessScore": 0.83,
+      "discussionLoopCount": 2,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000023",
+        "40000000-0000-4000-8000-000000000024",
+        "40000000-0000-4000-8000-000000000025"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000013",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000001",
+      "topic": "Open edX Marketplace",
+      "summary": "The group discussed how product, marketing, and technical working groups should collaborate on a marketplace for extensions and plugins.",
+      "status": "normal",
+      "contentionScore": 0.27,
+      "readinessScore": null,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000026",
+        "40000000-0000-4000-8000-000000000027"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000014",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000013",
+      "topic": "Working-group collaboration",
+      "summary": "Glib will present the proposal to the product group so it can be aligned with the XBlock and LTI configuration projects.",
+      "status": "ready_to_resume",
+      "contentionScore": 0.17,
+      "readinessScore": 0.9,
+      "discussionLoopCount": 0,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000026",
+        "40000000-0000-4000-8000-000000000027",
+        "40000000-0000-4000-8000-000000000028"
+      ]
+    },
+    {
+      "id": "30000000-0000-4000-8000-000000000015",
+      "roomId": "11111111-1111-1111-1111-111111111111",
+      "parentNodeId": "30000000-0000-4000-8000-000000000013",
+      "topic": "Plugin architecture and categorization",
+      "summary": "Tutor plugins were proposed as a likely extension mechanism, while the product group would help make technical categories understandable to users.",
+      "status": "normal",
+      "contentionScore": 0.34,
+      "readinessScore": 0.61,
+      "discussionLoopCount": 1,
+      "sourceSegmentIds": [
+        "40000000-0000-4000-8000-000000000029"
+      ]
+    }
+  ]
+}
