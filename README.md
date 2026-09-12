@@ -72,8 +72,9 @@ client 负责发送 HTTP 请求，service 负责成员权限与业务数据处�
 ### 当前实现范围
 
 当前是目录骨架：四个页面仍为占位页面；API 目录尚无 `route.ts`，不会提供业务接口。
-services 和基础设施入口尚无业务实现，`contracts/http.ts` 仅定义通用响应类型，尚无运行时校验。
-组件、Hooks、请求封装、数据库连接与外部服务将在对应功能中实现。
+已迁入经过 debug 通话验证的 LiveKit 语音基础能力：服务端 token 适配、`LiveKitConnection` DTO、
+`MeetingAudio` 连接 / 播放组件和 `useMeetingAudio` 麦克风控制 Hook，详见 [语音接入说明](docs/audio-integration.md)。
+正式入会 / 重连接口、业务鉴权、数据库连接与页面装配仍待实现；测试页面和无登录 token 接口不属于正式应用。
 常驻媒体 Worker 和 API-27 推理服务独立运行，不在 Next.js 请求内启动。
 
 开发前阅读 [前端 API](docs/api/frontend-api.md)、[内部 API](docs/api/internal-api.md)
