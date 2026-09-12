@@ -83,12 +83,12 @@ export default function MeetingMedia({ view }: { view: LiveMeetingView }) {
   })}<div className="cm-self-controls">
     {(error || publisher.error) && <p className="cm-error" role="alert">{error || publisher.error}</p>}
     <p role="status">Transcription: {speech.status === "unsupported" ? "Unavailable in this browser" : speech.status === "error" ? "Unavailable · toggle microphone to retry" : speech.status}</p>
-    <label>Transcription language · 转写语言<select className="cm-device-select" value={transcriptionLanguage} onChange={e => setTranscriptionLanguage(e.target.value)}>
-      <option value="">Browser language · 跟随浏览器</option>
-      <option value="zh-CN">中文（普通话）</option>
+    <label>Transcription language<select className="cm-device-select" value={transcriptionLanguage} onChange={e => setTranscriptionLanguage(e.target.value)}>
+      <option value="">Browser language</option>
+      <option value="zh-CN">Chinese (Mandarin)</option>
       <option value="en-US">English (US)</option>
     </select></label>
-    <p>Pause before switching languages. Completed sentences appear in the transcript. 切换前请先停顿，识别完成的句子会显示在左侧。</p>
+    <p>Pause before switching languages. Completed sentences appear in the transcript.</p>
     <details><summary>Microphone & camera devices</summary>
       <label>Microphone<select className="cm-device-select" defaultValue="" disabled={busy} onChange={e => void change(() => audio.selectMicrophone(e.target.value))}><option value="" disabled>Select microphone</option>{devices.filter(d => d.kind === "audioinput").map((d, i) => <option key={d.deviceId || i} value={d.deviceId}>{d.label || `Microphone ${i + 1}`}</option>)}</select></label>
       <label>Camera<select className="cm-device-select" defaultValue="" disabled={busy} onChange={e => void change(() => camera.selectCamera(e.target.value))}><option value="" disabled>Select camera</option>{devices.filter(d => d.kind === "videoinput").map((d, i) => <option key={d.deviceId || i} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>)}</select></label>

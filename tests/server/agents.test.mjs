@@ -59,6 +59,13 @@ test("meeting agent validates and returns structured node upserts", async () => 
   }, async () => ({ nodeUpserts: [upsert] }));
   assert.equal(output.nodeUpserts.length, 1);
   assert.equal(output.nodeUpserts[0].contentionScore, 0.82);
+  for (const localized of [
+    { ...upsert, topic: "项目范围" },
+    { ...upsert, participantStates: [{ ...upsert.participantStates[0], supportingReasons: ["稳定性"] }] },
+  ]) {
+    await assert.rejects(analyzeMeeting({ nodes: [], participantStates: [], pendingTranscripts: [] },
+      async () => ({ nodeUpserts: [localized] })), /English text/);
+  }
   await assert.rejects(
     analyzeMeeting({ nodes: [], participantStates: [], pendingTranscripts: [] }, async () => ({ nodeUpserts: [{ topic: 123 }] })),
     /validation/,

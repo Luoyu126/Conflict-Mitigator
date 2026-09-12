@@ -117,5 +117,8 @@ Input JSON: ${JSON.stringify(safeInput)}`;
   const result = await generate(prompt, signal);
   const parsed = z.object({ nodeUpserts: z.array(nodeUpsertSchema).max(50) }).safeParse(result);
   if (!parsed.success) throw new Error("Meeting analysis response failed validation.");
+  if (/\p{Script=Han}/u.test(JSON.stringify(parsed.data))) {
+    throw new Error("Meeting analysis must return English text without Chinese characters.");
+  }
   return { nodeUpserts: parsed.data.nodeUpserts };
 }

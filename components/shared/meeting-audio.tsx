@@ -72,6 +72,6 @@ export function MeetingAudio({
   >
     <LocalMediaOwner>{children}</LocalMediaOwner>
     <RoomAudioRenderer />
-    <StartAudio label="点击开启会议声音" />
+    <StartAudio label="Enable meeting audio" />
   </LiveKitRoom>;
 }
