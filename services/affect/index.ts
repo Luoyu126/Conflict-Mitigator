@@ -26,9 +26,6 @@ export async function ingestAffect(db: TransactionClient, roomId: string, input:
       p.consent_revision !== m.consentRevision || !(body.source === "visual" ? p.visual_affect_consent : p.voice_affect_consent)) {
     throw new ApiProblem({ status: 409, code: "CONSENT_REVOKED", message: "This observation is no longer authorized." });
   }
-  const epoch = p.media_epoch_at as Date | null;
-  if (m.sampledAtMs !== null && (!epoch || m.sampledAtMs > Date.now() - epoch.getTime() + 1_000 || m.sampledAtMs < Date.now() - epoch.getTime() - 30_000))
-    throw new ApiProblem({ status: 422, code: "INVALID_TIMESTAMP", message: "Observation is outside the current processing window." });
   const hash = hashRequestBody(body as unknown as JsonValue);
   const prior = await db`SELECT room_id,participant_id,request_hash FROM affect_observations WHERE id=${m.observationId}::uuid`;
   if (prior.length) {
@@ -36,6 +33,9 @@ export async function ingestAffect(db: TransactionClient, roomId: string, input:
       throw new ApiProblem({ status: 409, code: "IDEMPOTENCY_CONFLICT", message: "Observation ID already used." });
     return { observationId: m.observationId, duplicate: true, nodeId: null };
   }
+  const epoch = p.media_epoch_at as Date | null;
+  if (m.sampledAtMs !== null && (!epoch || m.sampledAtMs > Date.now() - epoch.getTime() + 1_000 || m.sampledAtMs < Date.now() - epoch.getTime() - 30_000))
+    throw new ApiProblem({ status: 422, code: "INVALID_TIMESTAMP", message: "Observation is outside the current processing window." });
   const inserted = await db`INSERT INTO affect_observations(id,room_id,participant_id,source,track_sid,stream_id,consent_revision,sampled_at_ms,request_hash,result)
     VALUES (${m.observationId}::uuid,${roomId}::uuid,${p.id}::uuid,${body.source},${m.trackSid},${m.streamId}::uuid,
       ${m.consentRevision},${m.sampledAtMs},${hash},${db.json(body.result)}) ON CONFLICT DO NOTHING`;
@@ -62,6 +62,8 @@ export async function getRecentAffect(db: TransactionClient, roomId: string): Pr
   const rows = await db.unsafe<ObservationRow[]>(`SELECT ${projection} FROM affect_observations a
     JOIN participants p ON p.id=a.participant_id JOIN rooms r ON r.id=a.room_id
     WHERE a.room_id=$1::uuid AND a.received_at>clock_timestamp()-interval '6 seconds'
+      AND a.expires_at>clock_timestamp() AND a.sampled_at_ms IS NOT NULL AND r.media_epoch_at IS NOT NULL
+      AND r.media_epoch_at+a.sampled_at_ms*interval '1 millisecond'>clock_timestamp()-interval '6 seconds'
       AND a.consent_revision=p.consent_revision AND p.status='active' AND NOT p.media_isolated
       AND NOT p.media_cleanup_pending AND r.status='meeting'
       AND ((a.source='visual' AND p.visual_affect_consent) OR (a.source='voice' AND p.voice_affect_consent))

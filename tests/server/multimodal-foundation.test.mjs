@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { getDatabase, withTransaction, closeDatabase } from "../../lib/db/postgres.ts";
 import { createRoom, joinRoom, leaveRoom, renewLiveKitToken, updateConsents, getRoomState } from "../../services/rooms/index.ts";
-import { ingestAffect, getMyAffect } from "../../services/affect/index.ts";
+import { ingestAffect, getMyAffect, getRecentAffect } from "../../services/affect/index.ts";
+
+import { proposeMediation } from "../../services/mediation/index.ts";
+import { runMaintenance } from "../../services/media/maintenance.ts";
 
 const issuer = async ({ roomId, participantId }) => ({ serverUrl:"wss://unit.test", participantToken:"test",
   roomName:`cm_${roomId}`, participantIdentity:participantId, expiresAt:new Date(Date.now()+600000).toISOString() });
@@ -59,3 +62,33 @@ test("emotion IDs cannot cross rooms and expired observations are not returned",
   assert.deepEqual((await getMyAffect(a.roomId,a.owner)).observations,[]);
 });
 test.after(async()=>{if(process.env.DATABASE_URL){for(const id of rooms) await getDatabase()`DELETE FROM rooms WHERE id=${id}::uuid`;}await closeDatabase();});
+
+
+test("Join withdrawal cancels a proposal and a cleaned-up former member cannot bypass its frozen membership",{skip:!process.env.DATABASE_URL},async()=>{
+  const f=await setup(),db=getDatabase();const nodeId=randomUUID();
+  await db`INSERT INTO mind_map_nodes(id,room_id,topic,status,contention_score) VALUES(${nodeId}::uuid,${f.roomId}::uuid,'Scope','heated',.8)`;
+  const proposed=await withTransaction(tx=>proposeMediation(tx,f.roomId,nodeId,f.owner,[f.me.me.participant.id,f.other.me.participant.id]));
+  await withTransaction(tx=>joinRoom(tx,f.roomId,f.owner,{displayName:"Test",consents:{...f.me.me.consents,structuredSharing:false},consentNoticeVersion:"cm-privacy-v1"},issuer));
+  assert.equal((await db`SELECT status FROM mediation_sessions WHERE id=${proposed.session.id}::uuid`)[0].status,"cancelled");
+  await withTransaction(tx=>updateConsents(tx,f.roomId,f.owner,{structuredSharing:true}));
+  await withTransaction(tx=>leaveRoom(tx,f.roomId,f.guest));
+  await db`UPDATE participants SET media_cleanup_pending=false,media_isolated=false,media_token_not_before=NULL WHERE id=${f.other.me.participant.id}::uuid`;
+  const nextUser=randomUUID();const next=await withTransaction(tx=>joinRoom(tx,f.roomId,nextUser,{displayName:"New",consents:f.me.me.consents,consentNoticeVersion:"cm-privacy-v1"},issuer));
+  await db`UPDATE mind_map_nodes SET status='heated' WHERE id=${nodeId}::uuid`;
+  await withTransaction(tx=>proposeMediation(tx,f.roomId,nodeId,f.owner,[f.me.me.participant.id,next.me.participant.id]));
+  await assert.rejects(withTransaction(tx=>joinRoom(tx,f.roomId,f.guest,{displayName:"Old",consents:f.me.me.consents,consentNoticeVersion:"cm-privacy-v1"},issuer)),e=>e.code==="MEDIA_ISOLATED");
+});
+test("delayed emotion samples are not current; maintenance closes abandoned proposals and deletes expired results",{skip:!process.env.DATABASE_URL},async()=>{
+  const f=await setup(),db=getDatabase();
+  await db`UPDATE rooms SET media_epoch_at=clock_timestamp()-interval '20 seconds' WHERE id=${f.roomId}::uuid`;
+  const body=observation(f);await withTransaction(tx=>ingestAffect(tx,f.roomId,body));
+  assert.deepEqual(await withTransaction(tx=>getRecentAffect(tx,f.roomId)),[]);
+  const nodeId=randomUUID();await db`INSERT INTO mind_map_nodes(id,room_id,topic,status,contention_score) VALUES(${nodeId}::uuid,${f.roomId}::uuid,'Scope','heated',.8)`;
+  const proposed=await withTransaction(tx=>proposeMediation(tx,f.roomId,nodeId,f.owner,[f.me.me.participant.id,f.other.me.participant.id]));
+  await db`UPDATE mediation_sessions SET expires_at=clock_timestamp()-interval '1 second' WHERE id=${proposed.session.id}::uuid`;
+  await db`UPDATE affect_observations SET expires_at=clock_timestamp()-interval '1 second' WHERE id=${body.metadata.observationId}::uuid`;
+  await runMaintenance();
+  assert.equal((await db`SELECT status FROM mediation_sessions WHERE id=${proposed.session.id}::uuid`)[0].status,"cancelled");
+  assert.equal((await db`SELECT active_mediation_session_id FROM rooms WHERE id=${f.roomId}::uuid`)[0].active_mediation_session_id,null);
+  assert.equal((await db`SELECT id FROM affect_observations WHERE id=${body.metadata.observationId}::uuid`).length,0);
+});

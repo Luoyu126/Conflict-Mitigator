@@ -191,6 +191,12 @@ export async function recordEntryDecision(
   const members = await loadMembers(db, sessionId);
   const allAccepted = members.every((member) => member.entryDecision === "accept");
   if (allAccepted) {
+    const eligible = await db<{ count: number }[]>`SELECT count(*)::int AS count FROM participants p JOIN mediation_members m ON m.participant_id=p.id
+      WHERE m.mediation_session_id=${sessionId}::uuid AND p.room_id=${roomId}::uuid AND p.status='active' AND p.structured_sharing_consent`;
+    if (eligible[0].count !== members.length) {
+      await cancelSessionInternal(db, loaded, "CONSENT_WITHDRAWN");
+      return { session: await buildSessionData(db, await requireSession(db, roomId, sessionId)), triggeredStarting: false };
+    }
     const cutoff = Math.ceil(Date.now() / 1000) + 1;
     await db`UPDATE mediation_members SET isolation_cutoff_unix_sec = ${cutoff} WHERE mediation_session_id = ${sessionId}::uuid`;
     await db`UPDATE participants SET media_token_not_before = to_timestamp(${cutoff}), media_cleanup_pending = true
@@ -208,9 +214,9 @@ async function cancelSessionInternal(db: DatabaseExecutor, loaded: LoadedSession
   const needsCleanup = loaded.session.status === "starting" || loaded.session.status === "active";
   await db`UPDATE participants SET media_isolated = CASE WHEN ${needsCleanup} OR media_cleanup_pending THEN true ELSE false END,
     media_cleanup_pending = media_cleanup_pending OR ${needsCleanup},
-    media_token_not_before = GREATEST(media_token_not_before, clock_timestamp())
+    media_token_not_before = GREATEST(media_token_not_before, to_timestamp(ceil(extract(epoch from clock_timestamp()))+1))
     WHERE status = 'active' AND id IN (SELECT participant_id FROM mediation_members WHERE mediation_session_id = ${loaded.session.id}::uuid)`;
-  await db`UPDATE mind_map_nodes SET status = 'heated', readiness_score = NULL WHERE id = ${loaded.node.id}::uuid`;
+  await db`UPDATE mind_map_nodes SET status = 'normal', readiness_score = NULL WHERE id = ${loaded.node.id}::uuid`;
   await db`UPDATE rooms SET status = CASE WHEN status = 'ended' THEN 'ended' ELSE 'meeting' END, active_mediation_session_id = NULL, active_mediation_node_id = NULL WHERE id = ${loaded.session.roomId}::uuid AND active_mediation_session_id = ${loaded.session.id}::uuid`;
   await emitRoomEvent(db, loaded.session.roomId, "room.mediation.changed", { mediationSessionId: loaded.session.id });
 }
@@ -468,6 +474,13 @@ export async function recordResumeDecision(
   if (loaded.session.sharedSummary === null || loaded.session.summaryVersion < 1) throw new ApiProblem({ status: 409, code: "NOT_READY", message: "No shared summary is ready." });
   if (loaded.node.status !== "ready_to_resume") throw new ApiProblem({ status: 409, code: "NOT_READY", message: "The node is not ready to resume." });
   if (summaryVersion !== loaded.session.summaryVersion) throw new ApiProblem({ status: 409, code: "SUMMARY_VERSION_CONFLICT", message: "The summary version is stale." });
+
+  const readiness = await db<{ count: number }[]>`SELECT count(*)::int AS count FROM mediation_members m
+    JOIN private_messages p ON p.id=m.readiness_message_id AND p.participant_id=m.participant_id
+      AND p.mediation_session_id=m.mediation_session_id AND p.role='user' AND p.reply_status='completed'
+      AND p.expires_at>clock_timestamp()
+    WHERE m.mediation_session_id=${sessionId}::uuid AND m.ready_to_resume_recommended`;
+  if (readiness[0].count !== loaded.members.length) throw new ApiProblem({ status: 409, code: "NOT_READY", message: "The readiness assessment has expired." });
 
   if (decision === "wait") {
     await db`UPDATE mediation_members SET resume_decision = 'wait', accepted_summary_version = NULL WHERE mediation_session_id = ${sessionId}::uuid AND participant_id = ${loaded.me}::uuid`;

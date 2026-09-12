@@ -86,5 +86,7 @@ a fixed persisted revocation cutoff. Acknowledgements must match that target and
 cannot reopen a terminal session. Participant removal/room deletion are durable
 tasks, acknowledged only after successful LiveKit calls. New tokens remain blocked
 while isolated, cleanup is pending or their not-before cutoff is in the future.
-Worker maintenance closes expired proposals and deletes expired messages/results;
+Worker maintenance runs every two seconds, closes expired proposals and cancels
+isolation that remains starting for 30 seconds, preserving pending cleanup. It
+deletes expired messages/results;
 application queries also enforce expiry when maintenance is delayed.

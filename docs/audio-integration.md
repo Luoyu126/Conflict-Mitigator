@@ -1,3 +1,9 @@
+> Historical audio-foundation notes. The current integrated application is described
+> in [README](../README.md) and [multimodal v0.3](api/multimodal-v0.3.md).
+> v0.3 enables microphone **and camera** publication, formal join/token APIs,
+> shared media hooks and a running `worker/main.ts`; the “not yet implemented”
+> statements below describe the original extraction stage only.
+
 # LiveKit 语音基础能力
 
 从已完成双人实时通话验证的 debug 应用中提取，供正式业务层和页面使用。

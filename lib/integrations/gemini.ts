@@ -11,6 +11,7 @@ export function readGeminiConfig(): GeminiConfig {
 
 /** Injectable model shape; production uses the Gemini REST SDK under the hood. */
 export type JsonModel = (prompt: string, signal?: AbortSignal) => Promise<unknown>;
+let verifiedModel: { apiKey: string; model: string; until: number } | undefined;
 
 export async function generateJson(
   prompt: string,
@@ -20,6 +21,15 @@ export async function generateJson(
   const ai = new GoogleGenAI({ apiKey: config.apiKey });
   const timeoutSignal = options.timeoutMs ? AbortSignal.timeout(options.timeoutMs) : undefined;
   const signal = options.signal && timeoutSignal ? AbortSignal.any([options.signal, timeoutSignal]) : options.signal ?? timeoutSignal;
+  // Validate the configured provider identifier rather than silently substituting
+  // a different model for the product's chosen target. Keep credentials server-side.
+  if (!verifiedModel || verifiedModel.apiKey !== config.apiKey || verifiedModel.model !== config.model || verifiedModel.until < Date.now()) {
+    const model = await ai.models.get({ model: config.model, config: { abortSignal: signal } });
+    if (!model.name || (model.supportedActions && !model.supportedActions.includes("generateContent"))) {
+      throw new Error("Configured Gemini model does not support content generation.");
+    }
+    verifiedModel = { apiKey: config.apiKey, model: config.model, until: Date.now() + 600_000 };
+  }
   const response = await ai.models.generateContent({
     model: config.model,
     contents: prompt,

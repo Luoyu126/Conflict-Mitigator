@@ -58,6 +58,7 @@ export const nodeUpsertSchema = z.object({
     })).max(11),
     acceptableCompromises: z.array(z.string().trim().min(1).max(1000)).max(20),
     evidenceTranscriptIds: z.array(z.string().uuid()).max(100),
+    affectObservationIds: z.array(z.string().uuid()).max(30).default([]),
   })).max(12),
 });
 export type NodeUpsert = z.infer<typeof nodeUpsertSchema>;

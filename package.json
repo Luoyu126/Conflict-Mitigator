@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "test:media": "node --conditions=react-server --experimental-strip-types --test --test-isolation=none tests/media/*.test.mjs",
-    "test:server": "node --conditions=react-server --experimental-strip-types --test --test-isolation=none tests/server/*.test.mjs"
+    "test:server": "node --conditions=react-server --experimental-strip-types --test --test-isolation=none tests/server/*.test.mjs",
+    "worker": "node --env-file-if-exists=.env.local --conditions=react-server --experimental-strip-types worker/main.ts",
+    "worker:check": "npm run worker -- --check",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:worker": "node --conditions=react-server --experimental-strip-types --test --test-isolation=none tests/worker/*.test.mjs",
+    "test:http": "node --test --test-isolation=none tests/http/routes.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",
@@ -42,5 +47,8 @@
     "playwright-core": "^1.63.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.18.0"
   }
 }

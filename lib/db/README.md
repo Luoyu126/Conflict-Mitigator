@@ -50,20 +50,29 @@ lists use JSONB arrays. Defaults initialize UUIDs, timestamps, states, and lists
 Triggers maintain `updated_at`; foreign keys use PostgreSQL's default NO ACTION
 deletion behavior. Multiple mediation sessions per node are supported.
 
-After migration 002, browser roles have read-only RLS access to safe shared tables,
-members can see only their own unexpired private messages, and sensitive analysis
-tables remain inaccessible directly. Application writes still go through the
-authenticated server service. The bootstrap owner/superuser and Supabase
-`service_role` can bypass RLS, so those credentials must never reach the browser.
+`migrations/003_multimodal_foundation.sql` enables independently consented visual
+and voice analysis, owner-only observations, media cleanup fencing, evidence
+revisions and private-chat readiness. It revokes direct browser access to business
+and private tables; only the privacy-safe `room_events` invalidation channel remains.
+Business reads and writes go through authenticated server APIs. Never expose the
+database owner or `service_role` credentials to the browser.
+
+Apply each migration once, in numeric order, to the intended database using
+`psql -v ON_ERROR_STOP=1 "$DATABASE_URL" -f <migration-file>`. Docker initializes
+only 001; an existing Docker volume also needs 002 and 003 explicitly applied.
+Back up an existing database first and record applied migrations. Do not rerun 001
+or remove a volume to upgrade it. These instructions do not migrate a shared or
+remote database automatically.
+
+The running media Worker calls maintenance every two seconds. It expires private
+messages and observations after 24 hours, cancels expired proposals, and cleans
+up mediation entry that has not completed within 30 seconds. Keep the Worker
+running even when the web service has no requests.
 
 ## Schema validation
 
-After applying both migrations to a disposable database, run:
-
-```bash
-psql -v ON_ERROR_STOP=1 "$DATABASE_URL" < tests/database/schema_v02.sql
-```
-
-The test runs in a transaction and rolls back. It verifies room-member RLS,
-participant-only private messages, immediate expiry visibility, physical cleanup,
-and cascading room deletion.
+After applying all three migrations to a disposable database, set `DATABASE_URL`
+and run `npm run test:server` and `npm run test:http`. The legacy
+`tests/database/schema_v02.sql` documents the older 002-only access policy and is
+not the acceptance suite for 003. Current tests cover revoked direct grants,
+owner-only HTTP projections, consent revisions, cleanup and isolation.

@@ -317,6 +317,20 @@ export async function submitMeetingAnalysis(db: TransactionClient, roomId: strin
           || state.evidenceTranscriptIds.some((id) => evidence.get(id) !== state.participantId)) {
         invalid("INVALID_EVIDENCE", "Each participant state requires that participant's own source transcripts.");
       }
+      if (state.affectObservationIds.length) {
+        const observations = await db`SELECT a.id FROM affect_observations a JOIN participants p ON p.id=a.participant_id
+          WHERE a.id=ANY(${state.affectObservationIds}::uuid[]) AND a.room_id=${roomId}::uuid
+            AND a.participant_id=${state.participantId}::uuid AND a.consent_revision=p.consent_revision
+            AND a.expires_at>clock_timestamp() AND p.status='active' AND NOT p.media_isolated
+            AND NOT p.media_cleanup_pending
+            AND ((a.source='voice' AND p.voice_affect_consent) OR (a.source='visual' AND p.visual_affect_consent))
+            AND EXISTS (SELECT 1 FROM transcript_segments t WHERE t.id=ANY(${state.evidenceTranscriptIds}::uuid[])
+              AND t.participant_id=a.participant_id AND a.sampled_at_ms IS NOT NULL
+              AND abs(extract(epoch FROM t.received_at)*1000 -
+                ((SELECT extract(epoch FROM media_epoch_at)*1000 FROM rooms WHERE id=${roomId}::uuid)+a.sampled_at_ms))<=6000)`;
+        if (new Set(state.affectObservationIds).size !== state.affectObservationIds.length || observations.length !== state.affectObservationIds.length)
+          invalid("INVALID_AFFECT_EVIDENCE", "Emotion evidence is no longer consent-valid or temporally matched to this speaker.");
+      }
       if (new Set(state.viewOfOthers.map((view) => view.participantId)).size !== state.viewOfOthers.length) {
         invalid("INVALID_EVIDENCE", "References to other participants must be unique.");
       }

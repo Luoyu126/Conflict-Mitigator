@@ -113,11 +113,13 @@ export async function getLobby(roomId: string, authUserId: string): Promise<Lobb
 }
 
 export async function getRoomState(roomId: string, authUserId: string): Promise<RoomData> {
-  const db = getDatabase();
+  return withTransaction(async db => {
+  await lockRoom(db, roomId);
   await requireRoomMember(db, roomId, authUserId);
   const [room, participants, me] = await Promise.all([requireRoom(db, roomId), listParticipants(db, roomId), participantForUser(db, roomId, authUserId)]);
   if (!me) throw new Error("Authorized participant disappeared.");
   return { room: roomDto(room), participants: participants.map(participantDto), me: myParticipantDto(me) };
+  });
 }
 
 export type ConnectionIssuer = (input: { roomId: string; participantId: string; displayName: string }) => Promise<LiveKitConnection>;
@@ -135,7 +137,7 @@ export async function joinRoom(
   if (!locked[0]) throw new ApiProblem({ status: 404, code: "ROOM_NOT_FOUND", message: "Room not found." });
   if (locked[0].status === "ended") throw new ApiProblem({ status: 409, code: "ROOM_ENDED", message: "The room has ended." });
   let participant = await participantForUser(db, roomId, authUserId);
-  await assertMediaAllowed(db, roomId, participant?.id);
+  await assertMediaAllowed(db, roomId, participant?.id, participant?.status !== "active");
   if (participant?.mediaIsolated) throw new ApiProblem({ status: 409, code: "MEDIA_ISOLATED", message: "Media is isolated during mediation." });
   if (!participant || participant.status === "left") {
     const counts = await db<{ count: number }[]>`SELECT count(*)::int AS count FROM participants WHERE room_id = ${roomId}::uuid AND status = 'active'`;
@@ -150,6 +152,8 @@ export async function joinRoom(
         ${input.consents.visualAffect}, ${input.consents.voiceAffect ?? false}, ${input.consents.structuredSharing}, ${CONSENT_NOTICE_VERSION}) RETURNING id`;
     await db`UPDATE participants SET livekit_identity = id::text WHERE id = ${inserted[0].id}::uuid`;
   } else {
+    if (participant.structuredSharingConsent && !input.consents.structuredSharing)
+      await closeOpenSession(db, roomId, participant.id, "CONSENT_WITHDRAWN");
     await db`
       UPDATE participants SET display_name = ${input.displayName}, status = 'active', left_at = NULL,
         transcription_consent = ${input.consents.transcription}, visual_affect_consent = ${input.consents.visualAffect},
@@ -244,10 +248,10 @@ async function lockRoom(db: DatabaseExecutor, roomId: string) {
   if (!rows.length) throw new ApiProblem({ status: 404, code: "ROOM_NOT_FOUND", message: "Room not found." });
 }
 
-async function assertMediaAllowed(db: DatabaseExecutor, roomId: string, participantId?: string) {
+async function assertMediaAllowed(db: DatabaseExecutor, roomId: string, participantId?: string, newAdmission = false) {
   const sessions = await db`SELECT status FROM mediation_sessions WHERE room_id = ${roomId}::uuid
     AND status IN ('proposed','starting','active')`;
-  if (sessions.some(s => s.status !== "proposed") || (!participantId && sessions.length)) {
+  if (sessions.some(s => s.status !== "proposed") || ((!participantId || newAdmission) && sessions.length)) {
     throw new ApiProblem({ status: 409, code: "MEDIA_ISOLATED", message: "Wait for the current mediation round before joining public media." });
   }
   if (!participantId) return;

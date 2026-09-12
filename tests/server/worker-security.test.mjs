@@ -205,3 +205,13 @@ test.after(async () => {
   }
   await closeDatabase();
 });
+
+
+dbTest("analysis rejects a revised final before committing stale model output", async () => {
+  const f=await fixture();const segment=transcript(f);await ingest(f,segment);
+  const stale=analysis(f,segment,{sourceTranscriptRevisions:{[segment.segmentId]:1}});
+  await ingest(f,{...segment,revision:2,content:"A revised public proposal"});
+  await assert.rejects(analyze(f,stale),code("TRANSCRIPT_REVISION_CONFLICT"));
+  assert.equal((await getDatabase()`SELECT id FROM mind_map_nodes WHERE room_id=${f.roomId}::uuid`).length,0);
+  await analyze(f,{...stale,sourceTranscriptRevisions:{[segment.segmentId]:2}});
+});
