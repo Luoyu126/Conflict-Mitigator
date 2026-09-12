@@ -18,6 +18,7 @@ import type {
   TranscriptSegment,
 } from "@/contracts/mind-map";
 import styles from "./mind-map-workspace.module.css";
+import { buildPositionedNodes, getMapViewport, MAP_CENTER as CENTER } from "@/lib/ui/mind-map-layout";
 
 type MindMapWorkspaceProps = {
   roomId: string;
@@ -31,16 +32,6 @@ type MindMapWorkspaceProps = {
 
 type ViewMode = "snapshot" | "replay";
 
-type PositionedNode = {
-  node: MindMapNode;
-  x: number;
-  y: number;
-  depth: number;
-};
-
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 760;
-const CENTER = { x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2 };
 const MEDIATION_CONTENTION_THRESHOLD = 0.7;
 
 function completedMediationsStorageKey(roomId: string) {
@@ -92,66 +83,6 @@ function getInitials(name: string) {
     .join("")
     .slice(0, 2)
     .toUpperCase();
-}
-
-function buildPositionedNodes(nodes: MindMapNode[]): PositionedNode[] {
-  if (!nodes.length) return [];
-
-  const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const root = nodes.find(
-    (node) => !node.parentNodeId || !nodeById.has(node.parentNodeId),
-  );
-  if (!root) return [];
-
-  const children = new Map<string, MindMapNode[]>();
-  for (const node of nodes) {
-    if (!node.parentNodeId) continue;
-    const siblings = children.get(node.parentNodeId) ?? [];
-    siblings.push(node);
-    children.set(node.parentNodeId, siblings);
-  }
-
-  const positioned: PositionedNode[] = [
-    { node: root, x: CENTER.x, y: CENTER.y, depth: 0 },
-  ];
-  const topLevel = children.get(root.id) ?? [];
-  const startAngle = topLevel.length === 1 ? -90 : -135;
-  const endAngle = topLevel.length === 1 ? -90 : 135;
-
-  const placeBranch = (
-    node: MindMapNode,
-    angle: number,
-    depth: number,
-    spread: number,
-  ) => {
-    const radius = depth === 1 ? 218 : depth === 2 ? 392 : 510;
-    const radians = (angle * Math.PI) / 180;
-    positioned.push({
-      node,
-      x: CENTER.x + Math.cos(radians) * radius,
-      y: CENTER.y + Math.sin(radians) * radius * 0.72,
-      depth,
-    });
-
-    const descendants = children.get(node.id) ?? [];
-    descendants.forEach((child, index) => {
-      const offset =
-        descendants.length === 1
-          ? 0
-          : -spread / 2 + (spread * index) / (descendants.length - 1);
-      placeBranch(child, angle + offset, depth + 1, spread * 0.66);
-    });
-  };
-
-  topLevel.forEach((node, index) => {
-    const angle =
-      topLevel.length === 1
-        ? startAngle
-        : startAngle + ((endAngle - startAngle) * index) / (topLevel.length - 1);
-    placeBranch(node, angle, 1, 40);
-  });
-
-  return positioned;
 }
 
 function buildReplayNodes(
@@ -262,6 +193,7 @@ export default function MindMapWorkspace({
     () => buildPositionedNodes(activeNodes),
     [activeNodes],
   );
+  const viewport = useMemo(() => getMapViewport(positionedNodes), [positionedNodes]);
   const positionById = useMemo(
     () => new Map(positionedNodes.map((item) => [item.node.id, item])),
     [positionedNodes],
@@ -502,9 +434,11 @@ export default function MindMapWorkspace({
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
+    const matrix = event.currentTarget.getScreenCTM();
+    if (!matrix) return;
     setPan({
-      x: drag.startPanX + (event.clientX - drag.x) / zoom,
-      y: drag.startPanY + (event.clientY - drag.y) / zoom,
+      x: drag.startPanX + (event.clientX - drag.x) / matrix.a,
+      y: drag.startPanY + (event.clientY - drag.y) / matrix.d,
     });
   };
 
@@ -516,7 +450,7 @@ export default function MindMapWorkspace({
 
   const onWheel = (event: ReactWheelEvent<SVGSVGElement>) => {
     event.preventDefault();
-    setZoom((value) => clamp(value - event.deltaY * 0.001, 0.62, 1.5));
+    setZoom((value) => clamp(value - event.deltaY * 0.001, 0.3, 5));
   };
 
   const renderTranscriptItem = (segment: TranscriptSegment) => {
@@ -668,7 +602,7 @@ export default function MindMapWorkspace({
           <div className={styles.mapViewport}>
             <svg
               className={styles.mapCanvas}
-              viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+              viewBox={`${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}`}
               role="img"
               aria-labelledby="map-title map-description"
               onPointerDown={onPointerDown}
@@ -715,7 +649,7 @@ export default function MindMapWorkspace({
                   const selected = node.id === selectedNode?.id;
                   const isRoot = depth === 0;
                   const labelLines = splitLabel(node.topic, isRoot ? 21 : 24);
-                  const onRight = x >= CENTER.x;
+                  const onRight = depth > 0;
                   const labelX = isRoot ? x : x + (onRight ? 18 : -18);
                   const textAnchor = isRoot ? "middle" : onRight ? "start" : "end";
 
@@ -833,8 +767,8 @@ export default function MindMapWorkspace({
             </div>
 
             <div className={styles.zoomControls} aria-label="Zoom controls">
-              <button onClick={() => setZoom((value) => clamp(value + 0.1, 0.62, 1.5))} aria-label="Zoom in">＋</button>
-              <button onClick={() => setZoom((value) => clamp(value - 0.1, 0.62, 1.5))} aria-label="Zoom out">−</button>
+              <button onClick={() => setZoom((value) => clamp(value + 0.1, 0.3, 5))} aria-label="Zoom in">＋</button>
+              <button onClick={() => setZoom((value) => clamp(value - 0.1, 0.3, 5))} aria-label="Zoom out">−</button>
               <button onClick={resetView} aria-label="Fit to screen">⌗</button>
             </div>
 

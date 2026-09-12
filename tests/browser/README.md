@@ -49,7 +49,8 @@ The check verifies:
 4. Private messages come from the API; retrying a failed send reuses `clientMessageId`.
 5. Resume submits the displayed `summaryVersion`, waits for completed server state,
    then requests fresh media credentials.
-6. The flow emits no uncaught browser errors.
+6. Multiple independent roots and nested descendants all render inside the fitted canvas, with only real parent-child edges; node selection and zoom remain usable.
+7. The flow emits no uncaught browser errors.
 
 Lobby, live meeting, and private mediation screenshots are saved for visual review.
 The fixture deliberately makes media-token requests return a retryable conflict:

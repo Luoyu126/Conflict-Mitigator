@@ -26,6 +26,12 @@ const id='10000000-0000-4000-8000-000000000001',pid='20000000-0000-4000-8000-000
 const now=new Date().toISOString();let consents={transcription:false,visualAffect:false,voiceAffect:false,structuredSharing:false};
 const participant={id:pid,roomId:id,displayName:'Live tester',role:'host',status:'active',livekitIdentity:pid,joinedAt:now,leftAt:null};
 const node={id:nid,roomId:id,parentNodeId:null,topic:'Real API topic',summary:'Server-grounded summary',status:'heated',contentionScore:.8,readinessScore:null,discussionLoopCount:3,createdAt:now,updatedAt:now};
+const extraNodes = [
+ { ...node, id: '40000000-0000-4000-8000-000000000002', topic: 'Budget', status: 'normal', parentNodeId: null },
+ { ...node, id: '40000000-0000-4000-8000-000000000003', topic: 'Delivery', status: 'normal', parentNodeId: null },
+ { ...node, id: '40000000-0000-4000-8000-000000000004', topic: 'Testing', status: 'normal', parentNodeId: '40000000-0000-4000-8000-000000000003' },
+ { ...node, id: '40000000-0000-4000-8000-000000000005', topic: 'Test coverage', status: 'normal', parentNodeId: '40000000-0000-4000-8000-000000000004' },
+];
 let state='meeting';let med=null;let joined;const sentIds=[];let sendFails=true;let messages=[];let resumeVersion;let tokenTimes=[];
 function roomData(){return {room:{id,title:'Live API conversation',status:state,createdAt:now,updatedAt:now,mediaEpochAt:now,activeMediationSessionId:med&&!['completed','cancelled'].includes(med.status)?sid:null,activeMediationNodeId:med&&!['completed','cancelled'].includes(med.status)?nid:null,observer:{status:'ready',audio:'ready',video:'ready',meetingAgent:'ready',lastHeartbeatAt:now}},participants:[participant],me:{participant,consents,consentRevision:1,consentNoticeVersion:'cm-privacy-v1'}};}
 function session(status='proposed'){return {id:sid,roomId:id,nodeId:nid,status,triggerReason:'Discussion needs clarification',sharedSummary:null,summaryVersion:0,createdAt:now,expiresAt:null,startedAt:null,endedAt:null,members:[{participantId:pid,entryDecision:'pending',resumeDecision:'pending',acceptedSummaryVersion:null,isolatedAt:null,updatedAt:now}],transitionError:null};}
@@ -42,7 +48,7 @@ await page.route('**/api/rooms**',async route=>{
  if(path.endsWith('/lobby'))return ok({roomId:id,title:'Live API conversation',status:state,participantCount:1,canJoin:true,myParticipantId:null,consentNoticeVersion:'cm-privacy-v1'});
  if(path.endsWith('/join')){joined=body;return ok({room:roomData().room,me:roomData().me,livekit:{},navigationPath:`/room/${id}`});}
  if(path===`/api/rooms/${id}`)return ok(roomData());
- if(path.endsWith('/mind-map'))return ok({roomId:id,mapVersion:1,nodes:[node],participantStates:[]});
+ if(path.endsWith('/mind-map'))return ok({roomId:id,mapVersion:1,nodes:[node,...extraNodes],participantStates:[]});
  if(path.endsWith('/transcripts'))return ok({items:[{id:'segment-1',roomId:id,participantId:pid,content:'This text came from the API.',startedAtMs:100,endedAtMs:1000,isFinal:true,revision:1,streamId:'stream',sourceTrackSid:'TR_test',language:'en',confidence:null,createdAt:now,updatedAt:now}],pageInfo:{nextBeforeCursor:null,hasMore:false}});
  if(path.endsWith('/livekit-token')){tokenTimes.push(Date.now());return route.fulfill({status:409,json:{error:{code:'MEDIA_CLEANUP_PENDING',message:'Waiting for safe media renewal',retryable:true,retryAfterMs:1500,issues:[],userMessageId:null},requestId:'test'}});}
  if(path.endsWith(`/nodes/${nid}/mediation`))return ok({session:med,isMember:true});
@@ -56,11 +62,27 @@ await page.route('**/api/rooms**',async route=>{
  }
  if(path.endsWith('/resume')){resumeVersion=body.summaryVersion;med={...med,status:'completed'};state='meeting';return ok({session:med,node,roomStatus:state});}
  if(path.endsWith('/me'))return ok(meData());
- if(path.endsWith(`/nodes/${nid}`))return ok({node,participantStates:[],selfState:null,activeMediationSessionId:med?.id??null});
+ const detailNode = [node, ...extraNodes].find(item => path.endsWith(`/nodes/${item.id}`));
+ if(detailNode)return ok({node:detailNode,participantStates:[],selfState:null,activeMediationSessionId:detailNode.id===nid?med?.id??null:null});
  console.log('unexpected',method,path);return route.fulfill({status:404,json:{error:{message:'Not stubbed'}}});
 });
 await page.goto(`${appOrigin}/`);await page.getByLabel('Start a conversation').fill('Live API conversation');await page.getByRole('button',{name:'Create meeting',exact:true}).click();await page.waitForURL(`**/room/${id}/lobby`);await page.getByLabel('Your name',{exact:true}).fill('Live tester');
 assert.equal(await page.locator('input[type=checkbox]:checked').count(),0);await page.screenshot({path:join(artifacts, 'lobby.png'),fullPage:true});await page.getByRole('button',{name:'Join meeting',exact:true}).click();await page.waitForURL(`**/room/${id}`);await page.getByText('This text came from the API.').waitFor();assert.deepEqual(joined.consents,consents);assert.equal(await page.getByText('Chelsea Rathbun',{exact:false}).count(),0);await page.screenshot({path:join(artifacts, 'live.png'),fullPage:true});
+const map = page.locator('svg[aria-labelledby="map-title map-description"]');
+await page.getByRole('button', { name: 'Fit to screen', exact: true }).click();
+for (const item of [node, ...extraNodes]) {
+ const drawn = map.getByRole('button', { name: `${item.topic}.`, exact: false });
+ await drawn.waitFor();
+ const box = await drawn.boundingBox(), canvas = await map.boundingBox();
+ assert.ok(box && canvas && box.x >= canvas.x && box.y >= canvas.y && box.x + box.width <= canvas.x + canvas.width && box.y + box.height <= canvas.y + canvas.height, `${item.topic} fits inside canvas`);
+}
+assert.equal(await map.getByRole('button').count(), 5, 'all independent roots and descendants are rendered');
+assert.equal(await map.locator('path').count(), 2, 'only the two real parent-child edges are drawn');
+await map.getByRole('button', { name: 'Test coverage.', exact: false }).click();
+await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+await page.getByRole('button', { name: 'Fit to screen', exact: true }).click();
+await map.getByRole('button', { name: 'Real API topic.', exact: false }).click();
+await page.screenshot({path:join(artifacts, 'multi-root-map.png'),fullPage:true});
 med=session();await page.getByRole('button',{name:'Agree and enter mediation →'}).waitFor();await page.getByRole('button',{name:'Agree and enter mediation →'}).click();await page.getByText('Meeting media is off.',{exact:false}).waitFor();const before=tokenTimes.length;await page.waitForTimeout(1800);assert.equal(tokenTimes.length,before,'no token renewal during isolation');
 med={...med,status:'active'};await page.waitForURL(`**/room/${id}/mediation/${nid}`);await page.getByRole('button',{name:'Allow structured sharing',exact:true}).click();await page.getByLabel('Your message to the Private Agent').fill('My private concern');await page.getByRole('button',{name:'Send',exact:true}).click();await page.getByText('Test retry',{exact:true}).waitFor();await page.getByRole('button',{name:'Send',exact:true}).click();await page.getByText('A private API reply.').waitFor();assert.equal(sentIds[0],sentIds[1],'same clientMessageId on retry');
 med={...med,sharedSummary:'Shared approved proposal',summaryVersion:3};node.status='ready_to_resume';node.readinessScore=.8;await page.getByText('Shared concern from API',{exact:false}).waitFor();await page.screenshot({path:join(artifacts, 'private.png'),fullPage:true});await page.getByRole('button',{name:'Accept and return to meeting →'}).click();await page.waitForURL(`**/room/${id}`);assert.equal(resumeVersion,3);await page.waitForTimeout(1000);assert.ok(tokenTimes.length>before,'fresh token requested after completed mediation');assert.deepEqual(errors,[]);console.log('PASS: create/join all consent off, API-only live map/transcript, isolation blocks token, private text retry deduplicates, versioned resume, fresh token.');console.log(`Screenshots: ${artifacts}`);
