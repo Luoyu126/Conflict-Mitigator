@@ -78,7 +78,11 @@ export async function createLiveKitAudioConnection(
     canSubscribe: true,
     canPublish: true,
     canPublishSources: [TrackSource.MICROPHONE],
-    canPublishData: false,
+    // Enabled only so the browser can publish browser-confirmed final speech
+    // recognition results on the reserved topic `cm.transcript.final.v1`
+    // (see docs/api/decision-overrides-v0.2.md §2). This grants no camera,
+    // screen-share, metadata-update, or room-admin capability.
+    canPublishData: true,
     canUpdateOwnMetadata: false,
   });
   const participantToken = await token.toJwt();

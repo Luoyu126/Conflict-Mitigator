@@ -1,10 +1,35 @@
 # interact-api.md · 页面、后端与媒体交互逻辑
 
+> **已确认覆盖规则：** 实现时必须同时遵循
+> [decision-overrides-v0.2.md](decision-overrides-v0.2.md)。发生冲突时 v0.2 优先。
+> 本文后续的视频、Worker STT 插件、局部成员调解和纯轮询描述属于 v0.1 历史流程。
+
 > 契约版本：v0.1-proposed · 与 frontend-api.md / internal-api.md 配套 · 不增加新的 HTTP 接口
 
 本文解释三件事：**页面何时调用接口；后端收到请求后处理什么；音视频如何变成转写、辅助观察和共享图，再回到页面。** 字段的完整类型、必填和错误定义分别见 [frontend-api.md](frontend-api.md) 与 [internal-api.md](internal-api.md)。
 
 来源标记：**[S1]** 原精简 API 文档；**[S2]** 原完整 API 与实时媒体规范；**[S3]** 配套 OpenAPI v0.1。本文整理已有约定，不表示服务、数据库增量或真实模型已经实现 / 测试。
+
+## 0. v0.2 authoritative flow
+
+```text
+三名参与者匿名加入并连接 LiveKit 音频
+  → 浏览器 Web Speech 产生 final 文本
+  → reliable LiveKit data packet (cm.transcript.final.v1)
+  → Worker 以可信 sender identity 校验并调用 API-22
+  → Gemini 3.6 Flash 生成 API-24 结构化图更新
+  → contention >= 0.72 + 2 speakers + 3 final segments
+  → 服务层自动为所有 active participants 创建 pending proposal
+  → Realtime 通知 + 全员 API-14 接受
+  → 全员断开共享 LiveKit 音频，API-25 确认隔离
+  → API-15 返回共享 versioned consensus tree，各自使用 API-17 私聊
+  → 结构化安全提取后更新树并发 Realtime invalidation
+  → AI 建议返回 + 全员对同一 summaryVersion 调用 API-18
+  → API-05 新 token + 全员重连共享音频
+```
+
+API-23/API-27 固定返回 `409 FEATURE_DISABLED`。系统不采集视频、不保存原始音频，
+没有预设或手动转写后备。Realtime 用于状态失效通知，HTTP GET 仍是授权后的真相来源。
 
 ## 1. 先区分“调用方”和“实现方”
 
@@ -145,7 +170,7 @@ Worker 每 10 秒调用 API-20 续 30 秒租约，启动后及每 1 秒调用 AP
   → 显示字幕
 ```
 
-默认 STT 是插件流式调用，不是这 27 个 HTTP 里的另一个“音频上传接口”。供应商接口由所选插件适配；本次不新增第 28 个 STT HTTP 接口。[S2 §3.2；S3 API-22]
+v0.2 使用浏览器 Web Speech final 结果，经 LiveKit data packet 送给 Worker；Worker 再调用 API-22。浏览器不持有 Worker 凭证，且不新增第 28 个 HTTP 接口。下列插件流式说明仅保留为 v0.1 背景。
 
 | 原始内容 | 标准化 / API 字段 | 规则 |
 |---|---|---|
@@ -163,7 +188,7 @@ API-22 返回 `segment / duplicate / analysisRequired`。其中 `analysisRequire
 
 前端将相同 id 的旧 revision 替换为新 revision，不把中间版、最终版重复追加。只读最新一页可能漏掉窗口之外的数据，因此按 `pageInfo.nextBeforeCursor` 补齐到已知记录。[S2 API-09]
 
-## 6. 视频链路：摄像头如何影响节点状态
+## 6. 视频链路：摄像头如何影响节点状态（v0.2 已禁用）
 
 ### 6.1 视频不是直接变成 contentionScore
 
@@ -255,7 +280,7 @@ API-24 request
 | 隔离回执 | 不调用这个内部接口 | Worker API-25 提交 sessionId + results | 全部通过后 session=active，node=private_mediation |
 | 私聊开启 | API-15 得到 chatAllowed=true，开放输入 | 私聊后端仍逐请求检查本人身份、轮次和同意 | 允许 API-17 |
 
-目标人之外的其他成员可以继续公开会议。`rooms.status=mediation` 表示存在局部调解，不意味着所有人的媒体都关闭。原设计同房间至多一个未关闭轮次，名单冻结后不能因为某人短暂断线就悄悄换人。[S2 §0、§5；S3 MediationSession]
+v0.2 的自动提议冻结房间内所有 active participants；全员接受后所有人都断开公共音频。原设计的局部成员调解描述不再适用。同房间仍至多一个未关闭轮次，名单冻结后不能因为某人短暂断线就悄悄换人。
 
 **源规范的部署前提：** 隔离方案按 LiveKit Cloud 的明确 token 撤销 cutoff 设计；不是假定自托管 RemoveParticipant 自动让旧 token 失效。DB 状态更新与外部媒体调用不是原子事务，必须保留 starting、目标清单、失败 / 重试与取消；严格隔离效果仍需在实际部署里测试。[S2 §4.3]
 
@@ -332,9 +357,9 @@ API-26 由 LiveKit 调用，前端不调用。后端使用原始请求 body + �
 
 `room_finished` 可能仅表示公共媒体房间空了；当大家都进入文本小黑屋时，不能因此把业务 rooms.status 改 ended。短暂断线与主动 API-07 离会也不是同一件事。[S2 §4.4、§12.3]
 
-## 12. 结果如何回到前端：轮询，而非假设存在推送接口
+## 12. 结果如何回到前端：Realtime 失效通知 + 授权读取
 
-原规范选择下列同步方式；本次没有新增 SSE、前端 WebSocket 事件或私聊广播 API。[S2 §2.5]
+v0.2 使用 Supabase Realtime 发布房间/调解版本失效通知，并使用 Presence 显示网络在线状态。事件不携带私聊原文或完整共识树；客户端收到更新后仍调用下列授权 GET 获取真相。
 
 | 前端位置 | 读取方式 | 关键合并 / 判断字段 |
 |---|---|---|
@@ -352,9 +377,9 @@ API-26 由 LiveKit 调用，前端不调用。后端使用原始请求 body + �
 
 ## 13. 本次不补造的边界
 
-**模型供应商与评分策略：** 原规范未选定真实 STT / 视觉供应商、固定模型版本和经过验证的评分阈值；拆分文件不增加供应商 API，也不把示例阈值变成心理学结论。[S2 §0、§12.4]
+**模型与评分策略：** v0.2 选择 Gemini 3.6 Flash，并以 0.72 作为产品工作流触发阈值；它是产品启发式规则，不是心理学或诊断结论。视觉供应商不适用。
 
-**首次提议提醒的节点发现：** 现契约 API-03 提供 activeMediationSessionId，API-12 要求 nodeId，原规范没有单列“仅凭 sessionId 获取公开轮次”的 GET，也没有推送事件协议。已知节点的展示 / 解析有明确接口；尚未知目标节点时如何统一发现提议，需前后端结合当前节点列表确认 UI 策略。本次不悄悄添加字段或第 28 个接口。[S3 Room / API-12]
+**首次提议提醒的节点发现：** v0.2 在 Room 与 Realtime 事件中同时提供 `activeMediationSessionId` 和 `activeMediationNodeId`，客户端再通过 API-12 读取轮次；不新增第 28 个 HTTP 接口。
 
 **数据库迁移与部署：** 原规范提出的 auth 身份映射、mediation_members、affect_observations、版本 / 幂等收据等仍需落地。上述 API 文档是契约，不证明数据库已经存在这些列，也不证明媒体隔离与模型质量已经通过端到端测试。[S2 §11、§14.3]
 

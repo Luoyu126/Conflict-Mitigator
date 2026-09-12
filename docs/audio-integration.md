@@ -27,7 +27,7 @@ const livekit = await createLiveKitAudioConnection({
 不能把浏览器提交的 participantId 直接交给签发函数。
 
 房间名固定为 `cm_<roomId>`，identity 固定为已有的 `participant.id`，不会生成 debug 随机身份。
-token 仅允许发布麦克风、订阅媒体；不授予摄像头、屏幕分享、数据发送、管理或自行修改 metadata 的权限。
+token 允许发布麦克风、订阅媒体，并仅在预留 topic `cm.transcript.final.v1` 上发送浏览器 final 转写数据包；不授予摄像头、屏幕分享、其他数据用途、管理或自行修改 metadata 的权限。
 当前复用测试过的 600 秒 token 有效期，可由服务端调用方通过 `ttlSeconds` 配置；
 DTO 的 `expiresAt` 从本次实际签发的 JWT exp 读取。有效期不是通话断开计时器。
 签发过程不连接 LiveKit，也不会创建业务会议或参与记录。
@@ -54,6 +54,15 @@ DTO 的 `expiresAt` 从本次实际签发的 JWT exp 读取。有效期不是通
 `enabled=false`、清空连接信息或卸载组件会断开媒体并停止本地轨道；这不替代服务端媒体撤销。
 更换房间或参与者会重新创建连接。token 只在内存中传递，不记录到日志或持久存储。
 建议页面使用稳定的回调，避免频繁变化的 SDK 事件订阅。
+
+浏览器 final 转写（v0.2）：
+
+- `hooks/use-speech-recognition.ts` 使用 Web Speech API，`interimResults=false`，
+  只对外暴露 final 结果；不支持或空结果被忽略，不提供预设/手写转写后备。
+- `hooks/use-transcript-publisher.ts` 在 `MeetingAudio` 子组件内使用
+  `useRoomContext()`，把 final 文本封装为 `contracts/transcript-packet.ts` 的
+  数据包，通过可靠 `publishData` 发送到 `cm.transcript.final.v1`。数据包不携带
+  参与者身份，由 Worker 信任 LiveKit sender identity（等于 `participants.id`）。
 
 在其子组件内调用 `hooks/use-meeting-audio.ts` 的 `useMeetingAudio()`：
 

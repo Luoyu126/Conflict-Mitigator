@@ -38,7 +38,7 @@ test("signer restricts publishing to microphone, never accepting external grants
   const claims = await new TokenVerifier(config.apiKey, config.apiSecret).verify(result.participantToken);
   assert.deepEqual(claims.video.canPublishSources, ["microphone"]);
   assert.equal(claims.video.canSubscribe, true);
-  assert.equal(claims.video.canPublishData, false);
+  assert.equal(claims.video.canPublishData, true);
   assert.equal(claims.video.canUpdateOwnMetadata, false);
   assert.equal(claims.video.roomAdmin, undefined);
   assert.equal(claims.video.room, `cm_${input.roomId}`);

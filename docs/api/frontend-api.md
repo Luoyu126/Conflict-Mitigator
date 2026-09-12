@@ -2,6 +2,9 @@
 
 > 契约版本：v0.1-proposed · 按业务拆分版 · 共 19 个 HTTP 操作（API-01～19）
 
+> **已确认覆盖规则：** 实现时必须同时遵循
+> [decision-overrides-v0.2.md](decision-overrides-v0.2.md)。发生冲突时 v0.2 优先。
+
 只列页面需要调用的接口，以及渲染 / 表态 / 重试需要的字段。**包括初始化、自动轮询和历史查询，不限于用户点击。所有接口都由 Next.js 后端接收并实现。**
 
 本文件不要求前端调用 Worker、推理或 webhook 接口；这些接口见 [internal-api.md](internal-api.md)。后端如何处理与媒体如何流动见 [interact-api.md](interact-api.md)。
@@ -194,7 +197,7 @@
   "displayName": "Yunyi",
   "consents": {
     "transcription": true,
-    "visualAffect": true,
+    "visualAffect": false,
     "structuredSharing": true
   },
   "consentNoticeVersion": "cm-privacy-v1"
@@ -325,7 +328,7 @@
 | 字段 | 必填 | 类型 / 约束 | 含义 |
 |---|---|---|---|
 | `transcription` | 否 | boolean | 未来是否继续处理本人公共音频。 |
-| `visualAffect` | 否 | boolean | 未来是否继续抽取本人摄像头帧。 |
+| `visualAffect` | 否 | boolean | v0.2 兼容字段，只允许 false；true 返回 409 FEATURE_DISABLED。 |
 | `structuredSharing` | 否 | boolean | 未来是否继续从本人私聊提炼可共享信息；本轮为 false 会退出／取消本轮。 |
 
 对象约束：至少提交 1 个字段。
@@ -756,6 +759,7 @@
 | `chatAllowed` | 是 | boolean | 仅 active 且本人仍同意 structuredSharing 时为 true。 |
 | `canAcceptResume` | 是 | boolean | 节点 ready_to_resume 且存在有效 sharedSummary 时可接受恢复建议。 |
 | `navigationPath` | 是 | string | 服务端建议的当前页面；关闭轮次则为 /room/{roomId}。 |
+| `consensusTree` | 是 | [`ConsensusTree`](decision-overrides-v0.2.md#6-shared-consensus-tree) / null | 共享、带版本的隐私过滤共识树；生成前为 null。 |
 
 **业务约束：** 不返回 private_messages，聊天另分页。非本轮成员即使是 host 也不可访问。completed/cancelled 返回 chatAllowed=false、navigationPath=/room/{roomId}，便于刷新/返回按钮处理。
 
@@ -854,6 +858,7 @@
 | `selfState` | 是 | [`ParticipantNodeState`](#dto-participantnodestate) | 完整本人／授权 Agent 状态，沿用已讨论字段；没有 misunderstanding。 |
 | `node` | 是 | [`MindMapNode`](#dto-mindmapnode) | 共享讨论树节点。 |
 | `session` | 是 | [`MediationSession`](#dto-mediationsession) | 一次节点级调解；proposed/starting/cancelled 是为了落实同意与失败恢复而提出的扩展。 |
+| `consensusTreeVersion` | 是 | integer<br>≥ 0 | API-17 完成时的最新共识树版本；生成前为 0。 |
 
 `data: ChatPendingData`（外层仍为 `{ data, requestId }`）：
 
@@ -861,6 +866,7 @@
 |---|---|---|---|
 | `userMessage` | 是 | [`PrivateMessage`](#dto-privatemessage) | 仅当前会话所有者与其 Agent 可见的聊天；participantId 对 assistant 消息也是用户所有者。 |
 | `retryAfterMs` | 是 | integer<br>≥ 100 | 轮询本人 messages 或按相同 key 重试的间隔。 |
+| `consensusTreeVersion` | 是 | integer<br>≥ 0 | 当前最新共识树版本；收到更高 Realtime 版本后重新读取 API-15。 |
 
 **业务约束：** 仅 active 且本人同意共享。先按 clientMessageId 保存 user/pending，服务端只把本人私聊+节点上下文+他人可共享结构化观点送入模型。响应由模型生成，但写库必须结构校验与权限过滤；不能写他人状态。成功保存唯一 assistant 并置 completed 后返回 201；已完成重试返回 200；同 key 正在处理返回 202。服务端最长等待 25 秒，超时中止生成、user 标 failed 并返回 504（error.userMessageId）；不在请求结束后偷偷启动无持久队列的任务。修改结构化状态使旧 summary/确认失效；readiness/summary 可同步重新生成，版本冲突时在时限内重取最新状态再算；仍失败则保留聊天、维持未准备好状态，下一条有效消息再触发评估，不在请求结束后声称有任务继续运行。
 
@@ -1022,7 +1028,7 @@
 | 字段 | 必填 | 类型 / 约束 | 含义 |
 |---|---|---|---|
 | `transcription` | 是 | boolean | 允许把本人公开会议的麦克风音频送入 STT 并保存转写。 |
-| `visualAffect` | 是 | boolean | 允许抽取本人公开会议摄像头画面进行辅助 affect 分析；拒绝不影响视频通话。 |
+| `visualAffect` | 是 | boolean | v0.2 兼容字段，固定为 false；当前产品不采集或分析摄像头画面。 |
 | `structuredSharing` | 是 | boolean | 允许把从本人私聊提炼、适合共享的结构化观点用于本轮协作；不是公开私聊原文。 |
 
 <a id="dto-observerstatus"></a>
@@ -1052,6 +1058,7 @@ rooms 的安全 API 投影；补充字段在迁移附录中明确列出。
 | `updatedAt` | 是 | UTC ISO8601 | 会议业务状态最近更新时间，对应 updated_at。 |
 | `mediaEpochAt` | 是 | UTC ISO8601 / null | 【补充】房间媒体时间轴原点；第一次签发媒体连接信息时设定，之后不随重连重置。 |
 | `activeMediationSessionId` | 是 | UUID / null | 【派生】唯一未关闭调解轮次；没有时为 null。 |
+| `activeMediationNodeId` | 是 | UUID / null | 【v0.2 派生】唯一未关闭调解关联节点；与 sessionId 原子变化。 |
 | `observer` | 是 | [`ObserverStatus`](#dto-observerstatus) | 【派生】Worker 健康状态。 |
 
 <a id="dto-participant"></a>
