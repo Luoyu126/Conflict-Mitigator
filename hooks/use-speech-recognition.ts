@@ -14,8 +14,8 @@ function getConstructor() {
   const browser = window as unknown as { SpeechRecognition?: RecognitionConstructor; webkitSpeechRecognition?: RecognitionConstructor };
   return browser.SpeechRecognition ?? browser.webkitSpeechRecognition ?? null;
 }
-export function useSpeechRecognition({ enabled, audioTrack, onFinal }: {
-  enabled: boolean; audioTrack: MediaStreamTrack | undefined; onFinal: (text: string) => void;
+export function useSpeechRecognition({ enabled, audioTrack, language, onFinal }: {
+  enabled: boolean; audioTrack: MediaStreamTrack | undefined; language?: string; onFinal: (text: string) => void;
 }) {
   const [status, setStatus] = useState<"idle" | "listening" | "unsupported" | "error">("idle");
   const callback = useRef(onFinal);
@@ -30,7 +30,7 @@ export function useSpeechRecognition({ enabled, audioTrack, onFinal }: {
     }
     if (!Constructor) { queueMicrotask(() => update("unsupported")); return () => { stopped = true; }; }
     const recognition = new Constructor();
-    recognition.continuous = true; recognition.interimResults = false; recognition.lang = navigator.language || "en-US";
+    recognition.continuous = true; recognition.interimResults = false; recognition.lang = language || navigator.language || "en-US";
     let timer: ReturnType<typeof setTimeout>;
     function start() {
       if (stopped || audioTrack?.readyState !== "live") return;
@@ -57,6 +57,6 @@ export function useSpeechRecognition({ enabled, audioTrack, onFinal }: {
       recognition.onresult = null; recognition.onend = null; recognition.onerror = null;
       try { recognition.abort(); } catch { /* Already stopped. */ }
     };
-  }, [enabled, audioTrack]);
+  }, [enabled, audioTrack, language]);
   return { status: enabled ? status : "idle" as const };
 }

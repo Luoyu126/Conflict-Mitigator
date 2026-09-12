@@ -52,9 +52,10 @@ export default function MeetingMedia({ view }: { view: LiveMeetingView }) {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [transcriptionLanguage, setTranscriptionLanguage] = useState("");
   const listening = view.room.me.consents.transcription && audio.isMicrophoneEnabled && audio.connectionState === ConnectionState.Connected;
-  const publisher = useTranscriptPublisher({ consentRevision: view.room.me.consentRevision, enabled: listening });
-  const speech = useSpeechRecognition({ enabled: listening, audioTrack: audio.localAudioTrack?.mediaStreamTrack, onFinal: publisher.publishFinal });
+  const publisher = useTranscriptPublisher({ consentRevision: view.room.me.consentRevision, enabled: listening, language: transcriptionLanguage });
+  const speech = useSpeechRecognition({ enabled: listening, audioTrack: audio.localAudioTrack?.mediaStreamTrack, language: transcriptionLanguage, onFinal: publisher.publishFinal });
   const refreshDevices = useCallback(async () => {
     try { if (navigator.mediaDevices?.enumerateDevices) setDevices(await navigator.mediaDevices.enumerateDevices()); }
     catch { setError("Device names could not be read."); }
@@ -82,6 +83,12 @@ export default function MeetingMedia({ view }: { view: LiveMeetingView }) {
   })}<div className="cm-self-controls">
     {(error || publisher.error) && <p className="cm-error" role="alert">{error || publisher.error}</p>}
     <p role="status">Transcription: {speech.status === "unsupported" ? "Unavailable in this browser" : speech.status === "error" ? "Unavailable · toggle microphone to retry" : speech.status}</p>
+    <label>Transcription language · 转写语言<select className="cm-device-select" value={transcriptionLanguage} onChange={e => setTranscriptionLanguage(e.target.value)}>
+      <option value="">Browser language · 跟随浏览器</option>
+      <option value="zh-CN">中文（普通话）</option>
+      <option value="en-US">English (US)</option>
+    </select></label>
+    <p>Pause before switching languages. Completed sentences appear in the transcript. 切换前请先停顿，识别完成的句子会显示在左侧。</p>
     <details><summary>Microphone & camera devices</summary>
       <label>Microphone<select className="cm-device-select" defaultValue="" disabled={busy} onChange={e => void change(() => audio.selectMicrophone(e.target.value))}><option value="" disabled>Select microphone</option>{devices.filter(d => d.kind === "audioinput").map((d, i) => <option key={d.deviceId || i} value={d.deviceId}>{d.label || `Microphone ${i + 1}`}</option>)}</select></label>
       <label>Camera<select className="cm-device-select" defaultValue="" disabled={busy} onChange={e => void change(() => camera.selectCamera(e.target.value))}><option value="" disabled>Select camera</option>{devices.filter(d => d.kind === "videoinput").map((d, i) => <option key={d.deviceId || i} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>)}</select></label>
