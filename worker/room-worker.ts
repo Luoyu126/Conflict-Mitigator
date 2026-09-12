@@ -5,7 +5,7 @@ import { TRANSCRIPT_DATA_TOPIC } from "../contracts/transcript-packet.ts";
 import { normalizeTranscriptIngestion } from "../lib/worker/transcript-ingestion.ts";
 import { createHumeStream, type HumeStreamOptions, type HumeStream } from "../lib/integrations/hume.ts";
 import { analyzeMeeting, type MeetingAnalysisInput, type MeetingAnalysisOutput } from "../lib/agents/meeting-agent.ts";
-import { generateJson } from "../lib/integrations/gemini.ts";
+import { generateMeetingJson } from "../lib/integrations/meeting-model.ts";
 import { WorkerHttpError, type WorkerTransport } from "./http.ts";
 import { bounded, wait, type WorkerMedia, type MediaAdmin, type Publication, type CameraFrame } from "./media-types.ts";
 
@@ -304,7 +304,7 @@ export class RoomWorker {
   private async analyze(snapshot: WorkerContext, controller: AbortController) {
     const input: AnalyzerInput = { mediaEpochAt: snapshot.room.mediaEpochAt, nodes: snapshot.nodes, participantStates: snapshot.participantStates,
       pendingTranscripts: snapshot.pendingTranscripts, recentAffectObservations: snapshot.recentAffectObservations };
-    const analyze = this.options.analyze ?? ((value, signal) => analyzeMeeting(value, prompt => generateJson(prompt, undefined, { signal })));
+    const analyze = this.options.analyze ?? ((value, signal) => analyzeMeeting(value, prompt => generateMeetingJson(prompt, { signal })));
     const timeout = setTimeout(() => controller.abort(), 25_000);
     try {
       const output = await bounded(analyze(input, controller.signal), controller.signal, 25_000);

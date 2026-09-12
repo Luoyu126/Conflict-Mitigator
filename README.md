@@ -32,7 +32,7 @@ Next.js 提供页面、业务 API 和受服务凭证保护的 API-27 图像推�
 
 `APP_ORIGIN` 指向 Next.js；`INFERENCE_ORIGIN` 默认相同。Worker 和 Next.js 必须使用一致的内部服务令牌、LiveKit 配置和数据库。生产环境请由进程管理器同时托管 web 与 Worker，并配置 LiveKit webhook 指向 `/api/webhooks/livekit`。
 
-缺少 Hume、Face++ 或 Gemini 配置时，相应分析不可用。Gemini 在首次调用时验证所配置模型是否存在并支持生成，不会静默换模型。浏览器转写使用既有音轨，目前保守支持桌面 Chrome/Chromium 135+（Windows/macOS/Linux，默认功能配置）；其他浏览器显示不可用，不另开麦克风或伪造转写。
+会议节点分析通过 `MEETING_MODEL_PROVIDER` 选择 `gemini`（默认）或 `siliconflow`。硅基流动使用服务端 `SILICONFLOW_API_KEY` 和 `SILICONFLOW_MODEL=Qwen/Qwen3.5-4B`，调用官方中国区接口，关闭思考模式并要求 JSON 输出；失败不会自动切换供应商。私密调解仍使用 Gemini。缺少所选供应商、Hume 或 Face++ 配置时，相应分析不可用。Gemini 在首次调用时验证所配置模型是否存在并支持生成，不会静默换模型。浏览器转写使用既有音轨，目前保守支持桌面 Chrome/Chromium 135+（Windows/macOS/Linux，默认功能配置）；其他浏览器显示不可用，不另开麦克风或伪造转写。
 
 会议右侧的 **Transcription language · 转写语言** 可选择 **中文（普通话）**（`zh-CN`）或 **English (US)**（`en-US`），默认跟随浏览器语言。开启麦克风并同意转写后生效；切换语言会重启识别，请先说完并停顿，避免丢失尚未完成的句子。左侧只显示识别完成的句子，不逐字显示；此设置不依赖 Hume 情绪识别额度。
 

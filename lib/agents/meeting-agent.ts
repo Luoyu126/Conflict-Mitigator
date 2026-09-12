@@ -1,7 +1,8 @@
 import { z } from "zod";
 import type { MindMapNode, ParticipantNodeState, TranscriptSegment } from "../../contracts/rooms.ts";
 import { nodeUpsertSchema, type NodeUpsert } from "../../contracts/worker.ts";
-import { generateJson, type JsonModel } from "../integrations/gemini.ts";
+import type { JsonModel } from "../integrations/gemini.ts";
+import { generateMeetingJson } from "../integrations/meeting-model.ts";
 import { randomUUID } from "node:crypto";
 import { AFFECT_FRESH_MS, type AffectObservation } from "../../contracts/affect.ts";
 
@@ -15,13 +16,13 @@ export type MeetingAnalysisInput = {
 export type MeetingAnalysisOutput = { nodeUpserts: NodeUpsert[] };
 
 /**
- * Runs the meeting-structure analysis (Gemini) and returns semantic node upserts.
+ * Runs meeting-structure analysis with the configured model and returns semantic node upserts.
  * The model selects actual transcript IDs. The service validates speaker/room
  * ownership and the Worker supplies revision snapshots before any writes.
  */
 export async function analyzeMeeting(
   input: MeetingAnalysisInput,
-  generate: JsonModel = (prompt, signal) => generateJson(prompt, undefined, { signal, timeoutMs: 25_000 }),
+  generate: JsonModel = (prompt, signal) => generateMeetingJson(prompt, { signal, timeoutMs: 25_000 }),
   signal?: AbortSignal,
 ): Promise<MeetingAnalysisOutput> {
   const safeInput = {
@@ -53,6 +54,10 @@ characters; for English, prefer 2-6 words. Write a nonempty summary of one short
 information, preserving explicit numbers, deadlines and uncertainty. These are length guidelines, not reasons to omit evidence.
 Do not translate Chinese speech into English labels. Do not turn a question into an answer or a suggestion into a decision.
 Reuse an existing node ID for the same concrete topic and integrate new information without duplicating nodes.
+Before allocating any new ID, compare the point with every existing topic. A new requirement, feature detail,
+question or reason about that topic normally updates its existing ID, even when a more specific label is possible.
+For example, with an existing "离线模式" node, "离线模式需要支持查看历史记录" MUST update that existing node,
+not create "离线模式查看历史" as another node. A new node requires a genuinely separate subject.
 Split independently actionable points into separate nodes, but keep a proposal and its directly supporting reason together.
 Use parentNodeId only when the input clearly supports a parent-child relationship; otherwise use null.
 Never invent umbrella topics just to fill the map. Use at most the supplied number of availableNewNodeIds for new nodes.

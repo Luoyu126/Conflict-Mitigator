@@ -99,3 +99,13 @@ unchanged. Meeting analysis receives the room `mediaEpochAt` and a computed list
 same-speaker `eligibleAffectObservationIds` per transcript within six seconds of
 that reception time. Unknown timing yields no eligible IDs. API-24 independently
 rechecks timing, ownership and current consent before accepting selected IDs.
+
+### Meeting model provider
+
+The configured meeting analyzer may use SiliconFlow (`Qwen/Qwen3.5-4B`) instead
+of Gemini, as requested by the user. `MEETING_MODEL_PROVIDER=siliconflow` selects
+the official `https://api.siliconflow.cn/v1/chat/completions` endpoint; credentials
+remain server-only. Final public transcripts and authorized auxiliary observations
+retain the same evidence, ownership and privacy checks before API-24 writes.
+No request/response fields or mediation thresholds change. Provider failures do
+not silently fall back. Private mediation continues to use Gemini.
