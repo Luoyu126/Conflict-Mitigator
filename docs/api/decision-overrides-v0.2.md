@@ -1,5 +1,8 @@
 # Conflict Mitigator API decision overrides · v0.2
 
+> **Current multimodal override:** [multimodal-v0.3.md](multimodal-v0.3.md) takes precedence for camera/voice consent, private emotion visibility and media lifecycle.
+
+
 > Status: confirmed implementation contract · 2026-09-12
 
 This document records confirmed product decisions that override conflicting

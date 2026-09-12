@@ -1,5 +1,8 @@
 # internal-api.md · 后端内部与媒体接口
 
+> **Current multimodal override:** [multimodal-v0.3.md](multimodal-v0.3.md) takes precedence for camera/voice consent, private emotion visibility and media lifecycle.
+
+
 > 契约版本：v0.1-proposed · 按业务拆分版 · 共 8 个 HTTP 操作（API-20～27）
 
 > **已确认覆盖规则：** 实现时必须同时遵循

@@ -4,7 +4,8 @@ import type { LiveKitConnection } from "./media";
 export const CONSENT_NOTICE_VERSION = "cm-privacy-v1" as const;
 export const consentsSchema = z.object({
   transcription: z.boolean(),
-  visualAffect: z.literal(false),
+  visualAffect: z.boolean(),
+  voiceAffect: z.boolean().default(false),
   structuredSharing: z.boolean(),
 }).strict();
 export const createRoomRequestSchema = z.object({
@@ -18,6 +19,7 @@ export const joinRequestSchema = z.object({
 export const consentPatchSchema = z.object({
   transcription: z.boolean().optional(),
   visualAffect: z.boolean().optional(),
+  voiceAffect: z.boolean().optional(),
   structuredSharing: z.boolean().optional(),
 }).strict().refine((value) => Object.keys(value).length > 0, {
   message: "At least one consent field is required.",

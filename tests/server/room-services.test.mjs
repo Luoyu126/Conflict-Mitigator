@@ -25,7 +25,7 @@ test("room lifecycle creates, joins, projects state, and emits invalidations", {
   roomId = created.room.id;
   assert.equal(created.room.status, "lobby");
   assert.equal(created.room.activeMediationNodeId, null);
-  assert.equal(created.lobbyPath, `/rooms/${roomId}/lobby`);
+  assert.equal(created.lobbyPath, `/room/${roomId}/lobby`);
   const lobby = await getLobby(roomId, guestUserId);
   assert.equal(lobby.participantCount, 0);
   assert.equal(lobby.canJoin, true);

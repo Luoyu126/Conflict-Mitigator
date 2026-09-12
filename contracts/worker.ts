@@ -16,6 +16,8 @@ export type WorkerParticipant = {
   id: string;
   livekitIdentity: string | null;
   transcriptionConsent: boolean;
+  visualAffectConsent: boolean;
+  voiceAffectConsent: boolean;
   structuredSharingConsent: boolean;
   consentRevision: number;
   mediaIsolated: boolean;

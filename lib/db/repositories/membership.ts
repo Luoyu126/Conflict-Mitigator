@@ -12,6 +12,8 @@ export type ParticipantAccess = {
   status: "active" | "left";
   consentRevision: number;
   transcriptionConsent: boolean;
+  visualAffectConsent: boolean;
+  voiceAffectConsent: boolean;
   structuredSharingConsent: boolean;
   mediaIsolated: boolean;
 };
@@ -31,6 +33,8 @@ export async function findParticipantForUser(
       status,
       consent_revision AS "consentRevision",
       transcription_consent AS "transcriptionConsent",
+      visual_affect_consent AS "visualAffectConsent",
+      voice_affect_consent AS "voiceAffectConsent",
       structured_sharing_consent AS "structuredSharingConsent",
       media_isolated AS "mediaIsolated"
     FROM participants

@@ -77,10 +77,10 @@ export async function createLiveKitAudioConnection(
     room: roomName,
     canSubscribe: true,
     canPublish: true,
-    canPublishSources: [TrackSource.MICROPHONE],
+    canPublishSources: [TrackSource.MICROPHONE, TrackSource.CAMERA],
     // Enabled only so the browser can publish browser-confirmed final speech
     // recognition results on the reserved topic `cm.transcript.final.v1`
-    // (see docs/api/decision-overrides-v0.2.md §2). This grants no camera,
+    // (see docs/api/multimodal-v0.3.md). This grants no
     // screen-share, metadata-update, or room-admin capability.
     canPublishData: true,
     canUpdateOwnMetadata: false,

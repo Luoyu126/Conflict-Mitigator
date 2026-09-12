@@ -1,5 +1,8 @@
 # interact-api.md · 页面、后端与媒体交互逻辑
 
+> **Current multimodal override:** [multimodal-v0.3.md](multimodal-v0.3.md) takes precedence for camera/voice consent, private emotion visibility and media lifecycle.
+
+
 > **已确认覆盖规则：** 实现时必须同时遵循
 > [decision-overrides-v0.2.md](decision-overrides-v0.2.md)。发生冲突时 v0.2 优先。
 > 本文后续的视频、Worker STT 插件、局部成员调解和纯轮询描述属于 v0.1 历史流程。

@@ -30,13 +30,13 @@ test("audio connection matches API DTO, stable identity and signed expiration", 
   assert.equal(retry.roomName, result.roomName);
 });
 
-test("signer restricts publishing to microphone, never accepting external grants", async () => {
+test("signer restricts publishing to microphone and camera, never accepting external grants", async () => {
   const result = await createLiveKitAudioConnection({
     ...input, ttlSeconds: 120, roomName: "wrong-room", identity: "admin",
     grants: { roomAdmin: true, canPublishSources: ["camera"] },
   }, config);
   const claims = await new TokenVerifier(config.apiKey, config.apiSecret).verify(result.participantToken);
-  assert.deepEqual(claims.video.canPublishSources, ["microphone"]);
+  assert.deepEqual(claims.video.canPublishSources, ["microphone", "camera"]);
   assert.equal(claims.video.canSubscribe, true);
   assert.equal(claims.video.canPublishData, true);
   assert.equal(claims.video.canUpdateOwnMetadata, false);
