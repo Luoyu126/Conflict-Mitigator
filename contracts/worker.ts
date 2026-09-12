@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { AffectObservation } from "./affect";
 import type { MediationSession, MindMapNode, ObserverStatus, ParticipantNodeState, Room, TranscriptSegment } from "./rooms";
 
 export const workerStatusRequestSchema = z.object({
@@ -27,6 +28,7 @@ export type IsolationPlan = { sessionId: string; targets: IsolationTarget[] };
 export type WorkerContext = {
   room: Room;
   mapVersion: number;
+  recentAffectObservations?: AffectObservation[];
   participants: WorkerParticipant[];
   nodes: MindMapNode[];
   participantStates: ParticipantNodeState[];
@@ -62,6 +64,7 @@ export type NodeUpsert = z.infer<typeof nodeUpsertSchema>;
 export const meetingAnalysisRequestSchema = z.object({
   analysisId: z.string().uuid(),
   baseMapVersion: z.number().int().min(0),
+  sourceTranscriptRevisions: z.record(z.string().uuid(), z.number().int().min(1)).optional(),
   sourceTranscriptIds: z.array(z.string().uuid()).min(1).max(100),
   nodeUpserts: z.array(nodeUpsertSchema).max(50),
 }).strict();

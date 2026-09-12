@@ -16,7 +16,7 @@ export function getBrowserSupabase(): SupabaseClient {
 }
 
 /** Establishes the anonymous Supabase identity used by every browser API call. */
-export async function ensureAnonymousSession(): Promise<string> {
+async function loadAnonymousSession(): Promise<string> {
   const client = getBrowserSupabase();
   const { data: { session: existingSession }, error } = await client.auth.getSession();
   if (error) throw error;
@@ -27,4 +27,10 @@ export async function ensureAnonymousSession(): Promise<string> {
     session = signedIn.data.session;
   }
   return session.access_token;
+}
+
+let establishingSession: Promise<string> | undefined;
+export function ensureAnonymousSession(): Promise<string> {
+  if (!establishingSession) establishingSession = loadAnonymousSession().finally(() => { establishingSession = undefined; });
+  return establishingSession;
 }

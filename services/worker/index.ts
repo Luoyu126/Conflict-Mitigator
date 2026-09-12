@@ -1,4 +1,5 @@
 import "server-only";
+import { getRecentAffect } from "../affect/index.ts";
 
 import { WebhookReceiver } from "livekit-server-sdk";
 import type {
@@ -102,7 +103,9 @@ export async function upsertWorkerLease(db: TransactionClient, roomId: string, i
       conflict("WORKER_LEASE_CONFLICT", "A current worker control snapshot is required.");
     }
     for (const target of existing[0].targets) {
-      await db`UPDATE participants SET media_cleanup_pending = false
+      await db`UPDATE participants SET media_cleanup_pending = false,
+        media_isolated = EXISTS (SELECT 1 FROM mediation_members m JOIN mediation_sessions s ON s.id=m.mediation_session_id
+          WHERE m.participant_id=participants.id AND s.status IN ('starting','active'))
         WHERE id = ${target.participantId}::uuid AND room_id = ${roomId}::uuid
           AND media_cleanup_pending AND floor(extract(epoch FROM media_token_not_before)) = ${target.revokeBeforeUnixSec}`;
     }
@@ -174,7 +177,7 @@ export async function getWorkerContext(db: TransactionClient, roomId: string, ru
   await db`UPDATE worker_leases SET media_cleanup_targets = ${db.json(mediaCleanupTargets)}, delete_media_room = ${deleteMediaRoom}
     WHERE room_id = ${roomId}::uuid AND run_id = ${runId}::uuid`;
   return {
-    room: roomDto(roomRows[0]), mapVersion: mapRows[0]?.mapVersion ?? 0,
+    room: roomDto(roomRows[0]), mapVersion: mapRows[0]?.mapVersion ?? 0, recentAffectObservations: await getRecentAffect(db, roomId),
     participants, nodes: nodes.map(nodeDto), participantStates: participantStates.map(stateDto),
     pendingTranscripts: pending.map(segmentDto), hasMorePendingTranscripts: hasMore[0].count > 100,
     pendingIsolations, mediaCleanupTargets, deleteMediaRoom,
@@ -278,11 +281,15 @@ export async function submitMeetingAnalysis(db: TransactionClient, roomId: strin
       || new Set(input.nodeUpserts.map((node) => node.id)).size !== input.nodeUpserts.length) {
     invalid("INVALID_EVIDENCE", "Transcript and node identifiers must be unique.");
   }
-  const transcriptRows = await db<{ id: string; participantId: string; isFinal: boolean; processedAt: Date | null }[]>`
-    SELECT id, participant_id AS "participantId", is_final AS "isFinal", processed_at AS "processedAt"
+  const transcriptRows = await db<{ id: string; participantId: string; isFinal: boolean; processedAt: Date | null; revision: number }[]>`
+    SELECT id, participant_id AS "participantId", is_final AS "isFinal", processed_at AS "processedAt", revision
     FROM transcript_segments WHERE room_id = ${roomId}::uuid AND id = ANY(${input.sourceTranscriptIds}::uuid[]) FOR UPDATE`;
   if (transcriptRows.length !== input.sourceTranscriptIds.length || transcriptRows.some((row) => !row.isFinal || row.processedAt)) {
     invalid("INVALID_EVIDENCE", "Source transcripts must be unprocessed final segments from this room.");
+  }
+  if (input.sourceTranscriptRevisions && (Object.keys(input.sourceTranscriptRevisions).length !== transcriptRows.length ||
+      transcriptRows.some(row => input.sourceTranscriptRevisions![row.id] !== row.revision))) {
+    conflict("TRANSCRIPT_REVISION_CONFLICT", "A source transcript changed during analysis.");
   }
   const evidence = new Map(transcriptRows.map((row) => [row.id, row.participantId]));
   const participantRows = await db<{ id: string }[]>`SELECT id FROM participants WHERE room_id = ${roomId}::uuid`;
@@ -392,6 +399,7 @@ async function autoProposeHeatedNodes(db: TransactionClient, roomId: string): Pr
   for (const participant of active) {
     await db`INSERT INTO mediation_members (mediation_session_id, participant_id, entry_decision) VALUES (${sessionId}::uuid, ${participant.id}::uuid, 'pending')`;
   }
+  await db`UPDATE rooms SET active_mediation_session_id=${sessionId}::uuid,active_mediation_node_id=${heated[0].id}::uuid WHERE id=${roomId}::uuid`;
   await emitRoomEvent(db, roomId, "room.mediation.changed", { mediationSessionId: sessionId });
 }
 

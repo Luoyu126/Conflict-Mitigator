@@ -12,7 +12,7 @@ export const affectResultSchema = z.object({
   faceCount: z.number().int().min(0).optional(),
   reason: z.enum(["no_face", "multiple_faces", "low_quality", "model_unavailable", "consent_revoked"]).nullable(),
   model: z.object({ provider: z.string().min(1).max(100), name: z.string().min(1).max(100), version: z.string().max(100).nullable() }).strict(),
-  inferenceMs: z.number().int().min(0),
+  inferenceMs: z.number().int().min(0).nullable(),
   scores: z.array(z.object({ name: z.string().min(1).max(80), score: z.number().min(0).max(100) }).strict()).max(48).default([]),
   vad: vadSchema.nullable().default(null),
 }).strict().superRefine((r, ctx) => {
@@ -37,7 +37,7 @@ export const affectIngestSchema = z.object({
   source: affectSourceSchema.default("visual"), metadata: observationMetadataSchema, result: affectResultSchema,
 }).strict().superRefine((v, ctx) => {
   if (v.result.observationId !== v.metadata.observationId) ctx.addIssue({ code: "custom", message: "Observation IDs must match." });
-  if (v.source === "visual" && (!frameMetadataSchema.safeParse(v.metadata).success ||
+  if (v.source === "visual" && (!frameMetadataSchema.safeParse(v.metadata).success || v.result.inferenceMs === null ||
       (v.result.status === "ok" && (v.result.faceCount !== 1 || v.result.intensity === null))))
     ctx.addIssue({ code: "custom", message: "Invalid camera observation." });
   if (v.source === "voice" && v.result.scores.some(s => s.score > 1)) ctx.addIssue({ code: "custom", message: "Invalid voice score." });

@@ -44,7 +44,8 @@ sampledAtMs and consentRevision; image-specific metadata is not required for voi
 Both modes require the current Worker run and active lease. The result retains
 status, intensity, confidence, reason, model and inferenceMs; optional `scores`
 and `vad` supply the original modality-specific model scores and labeled
-experimental display projection. VAD is not a calibrated measurement and cannot
+experimental display projection. Voice inferenceMs is null when provider latency is unknown;
+visual inferenceMs remains an integer. VAD is not a calibrated measurement and cannot
 be copied to contentionScore or averaged across modalities.
 
 Every observation is bound to one room, participant, track, stream and consent
@@ -67,6 +68,10 @@ scores, detailed emotion labels or observation bodies enter room Realtime events
 public participant projections or shared consensus trees. Worker context may
 include current, consent-valid observations for analysis. Other users' private
 agents receive only the existing safe public projection.
+
+API-24 additionally accepts sourceTranscriptRevisions (UUID-to-revision map);
+the production Worker always supplies it and stale revisions return
+409 TRANSCRIPT_REVISION_CONFLICT before writes.
 
 Backend meeting analysis may use valid emotion evidence alongside final public
 transcripts from the same speaker/time window. It must not manufacture a topic or
