@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { startMeetingTrackSpeech, supportsMeetingTrackSpeech, type SpeechBrowserInfo } from "@/lib/media/speech-track-support";
 
 type Recognition = {
   continuous: boolean; interimResults: boolean; lang: string;
@@ -9,7 +10,7 @@ type Recognition = {
 };
 type RecognitionConstructor = new () => Recognition;
 function getConstructor() {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !supportsMeetingTrackSpeech(navigator as SpeechBrowserInfo)) return null;
   const browser = window as unknown as { SpeechRecognition?: RecognitionConstructor; webkitSpeechRecognition?: RecognitionConstructor };
   return browser.SpeechRecognition ?? browser.webkitSpeechRecognition ?? null;
 }
@@ -33,7 +34,10 @@ export function useSpeechRecognition({ enabled, audioTrack, onFinal }: {
     let timer: ReturnType<typeof setTimeout>;
     function start() {
       if (stopped || audioTrack?.readyState !== "live") return;
-      try { recognition.start(audioTrack); update("listening"); }
+      try {
+        if (!startMeetingTrackSpeech(recognition, audioTrack, navigator as SpeechBrowserInfo)) { update("unsupported"); stopped = true; return; }
+        update("listening");
+      }
       catch { update("error"); stopped = true; }
     }
     recognition.onresult = event => {
