@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --night: #0b1017;
+  --panel: #121a26;
+  --panel-2: #17212f;
+  --ink: #e8eef6;
+  --muted: #8b98a9;
+  --line: rgba(255, 255, 255, 0.08);
+  --mint: #4fd1c0;
+  --amber: #ffb86b;
+  --danger: #ff6f75;
+  --violet: #a991ff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--night); color: var(--ink); font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; }
+input, textarea { font: inherit; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+.shell { min-height: 100vh; padding: 28px; max-width: 1180px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+.brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--mint); color: #04211c; display: grid; place-items: center; font-weight: 800; }
+.muted { color: var(--muted); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.grow { flex: 1; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font-weight: 600; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary { background: var(--mint); color: #04211c; border-color: transparent; }
+.btn-danger { background: rgba(255, 111, 117, 0.12); color: var(--danger); border-color: rgba(255, 111, 117, 0.25); }
+.btn-sm { padding: 6px 10px; font-size: 13px; }
+
+.input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
+.label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); }
+.pill.hot { color: var(--danger); border-color: rgba(255, 111, 117, 0.3); }
+.pill.ok { color: var(--mint); border-color: rgba(79, 209, 192, 0.3); }
+.pill.med { color: var(--violet); border-color: rgba(169, 145, 255, 0.3); }
+.error { color: var(--danger); font-size: 13px; }
+.h1 { font-size: 34px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 8px; }
+.h2 { font-size: 18px; margin: 0 0 4px; }
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #04211c; flex-shrink: 0; }
+.chat { display: flex; flex-direction: column; gap: 10px; max-height: 420px; overflow-y: auto; }
+.msg { max-width: 78%; padding: 10px 13px; border-radius: 12px; font-size: 14px; line-height: 1.45; }
+.msg.user { align-self: flex-end; background: var(--mint); color: #04211c; }
+.msg.assistant { align-self: flex-start; background: var(--panel-2); border: 1px solid var(--line); }
+.bar { display: flex; gap: 8px; align-items: center; }
+.map-node { display: flex; flex-direction: column; gap: 4px; }
+.center { display: grid; place-items: center; min-height: 60vh; text-align: center; }
+
+@media (max-width: 760px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .shell { padding: 16px; }
 }

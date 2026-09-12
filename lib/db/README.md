@@ -34,6 +34,15 @@ Never commit either environment file. Data persists in the project's Docker volu
 volume. Editing it does not migrate an existing database; use a new migration for
 later changes. Do not remove the volume to apply schema updates.
 
+`migrations/002_v02_supabase_schema.sql` is the additive implementation schema for
+the confirmed v0.2 contract. It adds anonymous-auth identity binding, consent and
+media isolation state, transcript revisions/evidence, the full mediation state
+machine, versioned consensus trees, idempotency and Worker receipts, privacy-safe
+Realtime invalidations, RLS, cascading room deletion, and 24-hour private-message
+expiry. Apply migrations in numeric order. The cleanup function is defined here;
+configuring a remote scheduler remains a separately permission-gated deployment
+action.
+
 IDs use UUIDs as specified by the database field definitions (`room_123` in the
 document is an illustrative identifier, not a valid UUID). Required fields follow
 the TypeScript models. Scores use double precision with range checks; structured
@@ -41,9 +50,20 @@ lists use JSONB arrays. Defaults initialize UUIDs, timestamps, states, and lists
 Triggers maintain `updated_at`; foreign keys use PostgreSQL's default NO ACTION
 deletion behavior. Multiple mediation sessions per node are supported.
 
-Private messages have row-level security enabled with no participant policies yet,
-so non-owner roles have no access by default. The bootstrap owner is a superuser
-and bypasses RLS. Before implementing participant-facing access, add authenticated
-authorization and a restricted application role; never expose the bootstrap
-connection to the browser. Same-room membership checks and shared-summary content
-filtering also belong in the upcoming authorization/API implementation.
+After migration 002, browser roles have read-only RLS access to safe shared tables,
+members can see only their own unexpired private messages, and sensitive analysis
+tables remain inaccessible directly. Application writes still go through the
+authenticated server service. The bootstrap owner/superuser and Supabase
+`service_role` can bypass RLS, so those credentials must never reach the browser.
+
+## Schema validation
+
+After applying both migrations to a disposable database, run:
+
+```bash
+psql -v ON_ERROR_STOP=1 "$DATABASE_URL" < tests/database/schema_v02.sql
+```
+
+The test runs in a transaction and rolls back. It verifies room-member RLS,
+participant-only private messages, immediate expiry visibility, physical cleanup,
+and cascading room deletion.

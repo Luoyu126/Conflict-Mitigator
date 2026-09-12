@@ -2,6 +2,12 @@
 
 AI 多人冲突调解会议系统，使用 Next.js App Router。
 
+已确认的实现覆盖规则见
+[`docs/api/decision-overrides-v0.2.md`](docs/api/decision-overrides-v0.2.md)；它与
+`docs/api/` 的 v0.1 契约冲突时优先。`docs/requirements.pdf` 保留为历史 PRD。
+本地和部署变量说明见 [`docs/configuration.md`](docs/configuration.md)；真实凭证只放在
+被忽略的项目根目录 `.env.local` 或部署平台的 secret manager 中。
+
 ## 项目框架
 
 ```text

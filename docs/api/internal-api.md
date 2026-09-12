@@ -2,6 +2,9 @@
 
 > 契约版本：v0.1-proposed · 按业务拆分版 · 共 8 个 HTTP 操作（API-20～27）
 
+> **已确认覆盖规则：** 实现时必须同时遵循
+> [decision-overrides-v0.2.md](decision-overrides-v0.2.md)。发生冲突时 v0.2 优先。
+
 本文件只列服务间调用：6 个 Worker 接口、1 个 LiveKit webhook、1 个独立视觉推理接口。**这是按调用者划分，不是实现责任划分：后端也必须实现 frontend-api.md 中的 19 个业务接口。**
 
 前端不持有本文件使用的服务凭证。`/api/internal` 命名不等于权限保护；必须鉴权、校验房间归属与执行租约。交互顺序见 [interact-api.md](interact-api.md)。
@@ -260,6 +263,10 @@ Worker JSON 上限沿用原规范建议：普通 256KiB，meeting-analysis 2MiB�
 
 **认证：** Worker bearer + 有效 X-Worker-Run-Id。
 
+**v0.2 行为：** 本接口仅为兼容保留。完成调用方认证后立即返回
+`409 FEATURE_DISABLED`，不解析或保存请求体。下列 v0.1 成功结构仅为历史契约，
+当前产品不可达。
+
 **参数**
 
 | 位置 | 字段 | 必填 | 类型 / 约束 | 含义 |
@@ -326,7 +333,7 @@ Worker JSON 上限沿用原规范建议：普通 256KiB，meeting-analysis 2MiB�
 
 **主要写入 / 结果：** affect_observations（新增）。
 
-**错误：** 通用错误表中的状态均适用；另有 / 细化为：`422 VALIDATION_ERROR / TRACK_IDENTITY_MISMATCH`；`409 CONSENT_REVOKED / MEDIA_ISOLATED / OBSERVATION_CONFLICT`。
+**错误：** 当前 v0.2 固定为 `409 FEATURE_DISABLED`；认证失败仍返回 401/403。
 
 **契约来源：** 原 OpenAPI 的 `post__api_internal_rooms__roomId__affect_observations`；原 API 规范 API-23。
 
@@ -420,7 +427,7 @@ Worker JSON 上限沿用原规范建议：普通 256KiB，meeting-analysis 2MiB�
 | `processedTranscriptIds` | 是 | UUID[]<br>至少 0 项；至多 100 项；元素唯一 | 幂等标记完成的 transcript。 |
 | `duplicate` | 是 | boolean | 相同 analysisId 是否已经处理。 |
 
-**业务约束：** baseMapVersion 乐观锁，单事务写入并标记 sourceTranscriptIds 已消费。所有 node/parent/participant/evidence 必须同房间；不得更改 active 调解节点的结构化状态。状态只由服务层根据分数与近期证据决定 normal/heated；不允许 AI 写 private_mediation/ready_to_resume。viewOfOthers 仅记录本人说出的理解；折中须有本人证据。视觉观察只在同人同时段讨论证据足够时绑定；无证据保持 nodeId=null。MVP 只 create/update，不开放节点删除/合并端点。
+**业务约束：** baseMapVersion 乐观锁，单事务写入并标记 sourceTranscriptIds 已消费。所有 node/parent/participant/evidence 必须同房间；不得更改 active 调解节点的结构化状态。状态只由服务层根据分数与近期证据决定 normal/heated；不允许 AI 写 private_mediation/ready_to_resume。viewOfOthers 仅记录本人说出的理解；折中须有本人证据。v0.2 不接收视觉观察。提交成功后，服务层按 v0.2 的 `contentionScore >= 0.72`、至少两名 active 参与者和至少三条 final 转写证据规则自动创建全员 pending 的提议；不替任何参与者接受。MVP 只 create/update，不开放节点删除/合并端点。
 
 **主要写入 / 结果：** mind_map_nodes；participant_node_states；rooms.map_version；final processed 标记；affect.node_id。
 
@@ -551,6 +558,10 @@ Worker JSON 上限沿用原规范建议：普通 256KiB，meeting-analysis 2MiB�
 
 **Host：** `INFERENCE_ORIGIN`，不是 `APP_ORIGIN`。
 
+**v0.2 行为：** 本接口仅为兼容保留。完成调用方认证后立即返回
+`409 FEATURE_DISABLED`，不解析 multipart、不保存 frame，也不调用模型。下列 v0.1
+成功结构仅为历史契约，当前产品不可达。
+
 **参数**
 
 无额外 Path / Query / Header 参数；认证 Header 仍按上面的认证要求发送。
@@ -589,7 +600,7 @@ multipart part 编码：`metadata: application/json`；`frame: image/jpeg`。
 
 **主要写入 / 结果：** 默认不落盘原始 JPEG；只返回模型结果。
 
-**错误：** 通用错误表中的状态均适用；另有 / 细化为：`413 PAYLOAD_TOO_LARGE`；`415 UNSUPPORTED_MEDIA_TYPE`；`503 MODEL_UNAVAILABLE`。
+**错误：** 当前 v0.2 固定为 `409 FEATURE_DISABLED`；认证失败仍返回 401/403。
 
 **契约来源：** 原 OpenAPI 的 `post__internal_v1_affect_frames`；原 API 规范 API-27。
 

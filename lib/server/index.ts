@@ -1,4 +1,9 @@
 import "server-only";
 
-// 服务端模块入口；具体实现与约定见 README.md。
-export {};
+export { requireAuthenticatedUser, requireServiceToken } from "./auth";
+export type { AuthenticatedUser } from "./auth";
+export { ApiProblem } from "./errors";
+export { errorResponse, routeResponse, successResponse, emptyResponse } from "./http";
+export { runIdempotent } from "./idempotency";
+export type { IdempotencyInput, IdempotentResult, JsonValue } from "./idempotency";
+export { parseJsonBody, parseUuid, requireIdempotencyKey, uuidSchema } from "./validation";
