@@ -5,6 +5,7 @@ import { TRANSCRIPT_DATA_TOPIC } from "../contracts/transcript-packet.ts";
 import { normalizeTranscriptIngestion } from "../lib/worker/transcript-ingestion.ts";
 import { createHumeStream, type HumeStreamOptions, type HumeStream } from "../lib/integrations/hume.ts";
 import { analyzeMeeting, type MeetingAnalysisInput, type MeetingAnalysisOutput } from "../lib/agents/meeting-agent.ts";
+import { applyNodeGroups } from "../lib/agents/node-grouping.ts";
 import { generateMeetingJson } from "../lib/integrations/meeting-model.ts";
 import { WorkerHttpError, type WorkerTransport } from "./http.ts";
 import { bounded, wait, type WorkerMedia, type MediaAdmin, type Publication, type CameraFrame } from "./media-types.ts";
@@ -318,9 +319,10 @@ export class RoomWorker {
         }
         }
       }
+      const nodeUpserts = output.nodeGroups?.length ? applyNodeGroups(snapshot.nodes, output.nodeUpserts, output.nodeGroups) : output.nodeUpserts;
       const body: MeetingAnalysisRequest = { analysisId: randomUUID(), baseMapVersion: snapshot.mapVersion,
         sourceTranscriptIds: snapshot.pendingTranscripts.map(t => t.id),
-        sourceTranscriptRevisions: Object.fromEntries(snapshot.pendingTranscripts.map(t => [t.id, t.revision])), nodeUpserts: output.nodeUpserts };
+        sourceTranscriptRevisions: Object.fromEntries(snapshot.pendingTranscripts.map(t => [t.id, t.revision])), nodeUpserts };
       await this.options.transport.post("meeting-analysis", body, controller.signal);
       this.failures.delete("meetingAgent");
     } finally { clearTimeout(timeout); }

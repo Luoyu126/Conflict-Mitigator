@@ -167,3 +167,15 @@ test("latest-only queue releases replaced values and stops cleanly",async()=>{
   const queue=new LatestOnly(async value=>{values.push(value);if(value===1)await release.promise;},controller.signal);
   queue.offer(1);await until(()=>values.length===1);queue.offer(2);queue.offer(3);release.resolve();await queue.done();assert.deepEqual(values,[1,3]);controller.abort();queue.offer(4);await delay(5);assert.deepEqual(values,[1,3]);
 });
+
+test("grouping-only analysis emits structural API writes without fabricating participant evidence",async t=>{
+  const f=fixture(),a=randomUUID(),b=randomUUID(),parent=randomUUID(),transcript=randomUUID();
+  f.context.nodes=[a,b].map((id,i)=>({id,parentNodeId:null,topic:i?'Staffing':'Budget',summary:'An existing public topic.',contentionScore:0,discussionLoopCount:0,status:'normal'}));
+  f.context.pendingTranscripts=[{id:transcript,participantId:f.identity,content:'Let us review the project constraints.',revision:1}];
+  await start(t,f,{analyze:async()=>({nodeUpserts:[],nodeGroups:[{id:parent,topic:'Project constraints',summary:'Budget and staffing constraints.',childNodeIds:[a,b]}]})});
+  await until(()=>f.posts.some(p=>p.path==='meeting-analysis'));
+  const body=f.posts.find(p=>p.path==='meeting-analysis').body;
+  assert.equal(body.nodeUpserts.length,3);assert.ok(body.nodeUpserts.every(n=>n.participantStates.length===0));
+  assert.ok(body.nodeUpserts.filter(n=>n.id!==parent).every(n=>n.parentNodeId===parent));
+  assert.deepEqual(body.sourceTranscriptIds,[transcript]);assert.equal(body.nodeGroups,undefined);
+});

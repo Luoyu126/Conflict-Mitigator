@@ -109,3 +109,22 @@ remain server-only. Final public transcripts and authorized auxiliary observatio
 retain the same evidence, ownership and privacy checks before API-24 writes.
 No request/response fields or mediation thresholds change. Provider failures do
 not silently fall back. Private mediation continues to use Gemini.
+
+### Inferred topic grouping
+
+Meeting analysis now includes a separate model-only `nodeGroups` array for justified
+common categories over at least two sibling nodes. The Worker compiles each proposal
+into existing API-24 node upserts: a new neutral parent, plus parent-link changes to
+its children. No HTTP fields or database columns are added. Child IDs, text, scores,
+participant states and original evidence remain intact; an empty participantStates
+array does not replace stored participant states. Inferred category parents make no
+participant claims, carry no fabricated transcript evidence, and start with zero
+contention and loop count. Ordinary content extraction still requires current final
+transcript evidence. Groups cannot include missing/cross-room nodes, duplicate children,
+or nodes protected by mediation; cycles and redundant parent layers are rejected or
+omitted. The backend repeats room, graph and map-version checks under its transaction.
+
+Grouping runs as part of analysis triggered by new final transcripts, including when
+only the existing map needs organization. It does not poll the model while idle. Nodes
+remain independent when no useful shared category is supported. All generated labels
+and summaries remain English.
