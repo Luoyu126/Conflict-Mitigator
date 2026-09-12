@@ -40,12 +40,38 @@ export async function analyzeMeeting(
   };
   const prompt = `You are a meeting-structure analyzer for a conflict-aware meeting tool.
 Given final transcript segments and the current discussion map, produce a JSON object with a single key "nodeUpserts" (array).
+Your priority is high-recall extraction: make meaningful speech visible in the map immediately.
+A single informative sentence from a single speaker is sufficient evidence. Do not wait for disagreement,
+multiple speakers, repeated mentions, a decision, or a fully developed argument before creating a node.
+For every pending transcript, identify concrete facts, opinions, suggestions, requirements, constraints,
+questions, concerns, decisions, tasks, dates or quantities. Represent each distinct informative point by
+creating a node or updating an existing node. A factual statement or question is useful even with no stated position.
+Skip only pure greetings, fillers, unintelligible fragments, or repetition with no new information.
+Do not skip a short sentence just because it is short. Extract the substantive part of a greeting plus a proposal.
+Use concise, specific topic labels in the language of the supporting speech: for Chinese, prefer 4-12 Chinese
+characters; for English, prefer 2-6 words. Write a nonempty summary of one short sentence capturing the actual
+information, preserving explicit numbers, deadlines and uncertainty. These are length guidelines, not reasons to omit evidence.
+Do not translate Chinese speech into English labels. Do not turn a question into an answer or a suggestion into a decision.
+Reuse an existing node ID for the same concrete topic and integrate new information without duplicating nodes.
+Split independently actionable points into separate nodes, but keep a proposal and its directly supporting reason together.
+Use parentNodeId only when the input clearly supports a parent-child relationship; otherwise use null.
+Never invent umbrella topics just to fill the map. Use at most the supplied number of availableNewNodeIds for new nodes.
+For updates, preserve supported existing participant-state information unless new evidence explicitly changes it;
+the participant-state arrays are replacements, not patches. Only include speakers with relevant pending transcript evidence.
+Neutral information is still a node: do not inflate contentionScore or discussionLoopCount to make extraction more visible.
+Examples of extraction decisions (illustrations only; never copy these as input evidence):
+- "大家好" -> no node.
+- "大家好，我建议周五上线" -> topic "周五上线建议", summary "发言者建议周五上线。"
+- "预算只有两万元" -> topic "预算上限", summary "可用预算为两万元。"; position may remain null.
+- "谁来负责测试？" -> topic "测试负责人", summary "发言者询问由谁负责测试，目前尚未确定。"; do not invent an owner.
+- "我建议先做手机版，因为用户主要用手机" -> one node "优先开发手机版", retaining the expressed reason.
+- "预算两万元，另外交付时间是周五" -> two nodes "预算上限" and "周五交付" unless matching nodes already exist.
 Each element describes a discussion node and each participant's structured state:
 {
   "id": "<uuid or existing node id>",
   "parentNodeId": null,
   "topic": "short topic",
-  "summary": null,
+  "summary": "one concise factual sentence in the language of the evidence",
   "contentionScore": 0..1,
   "discussionLoopCount": 0,
   "participantStates": [
@@ -66,7 +92,10 @@ Only derive positions, reasons, concerns and compromises that are actually expre
 Do not include a node status field. Keep participantId values exactly as given in the input.
 Choose new node IDs only from availableNewNodeIds; reuse existing topic IDs when appropriate.
 Every participant state must reference nonempty evidenceTranscriptIds from that person's input final transcripts,
-specifically about this node. Do not attach all transcripts to every node. Empty nodeUpserts is valid when evidence is insufficient.
+specifically about this node. Facts and questions can have position null and empty reason/concern arrays while still citing evidence.
+Do not attach all transcripts to every node. Before returning, check that every new informative point is represented.
+Return empty nodeUpserts only when there is no extractable new information (for example, greetings, fillers or pure duplicates),
+not because there is only one speaker, one short sentence, no expressed position or no conflict.
 Recent emotion observations are private auxiliary evidence. Use them only with the same speaker's contemporary public
 transcripts; select only IDs from those transcripts' eligibleAffectObservationIds and reference them in affectObservationIds when used. Unknown timing or weak evidence means do not use them.
 Never put personal scores, emotion labels, or private inference into shared topic, summary, position, reasons or concerns.
