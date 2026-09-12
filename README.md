@@ -83,6 +83,10 @@ services 和基础设施入口尚无业务实现，`contracts/http.ts` 仅定义
 
 ## Getting Started
 
+临时多人语音测试位于 [debug/](debug/README.md)，独立运行于本机 3001 端口。
+运行 `npm --prefix debug ci` 后执行 `npm --prefix debug run dev`，可比较 LiveKit 官方 React 音频连接、音色与网络统计。
+它不接入正式业务 API 或数据库。
+
 First, run the development server:
 
 ```bash

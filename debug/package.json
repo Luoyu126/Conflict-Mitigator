@@ -1,0 +1,26 @@
+{
+  "name": "conflict-mitigator-audio-debug",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node run.mjs",
+    "build": "next build",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@livekit/components-react": "2.9.24",
+    "@livekit/components-styles": "1.2.0",
+    "livekit-client": "2.22.3",
+    "livekit-server-sdk": "2.19.0",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,26 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #11151b; color: #e5eaf0; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1080px; margin: 0 auto; padding: 36px 20px 60px; }
+h1 { font-size: 36px; margin: 8px 0; } h2 { font-size: 19px; margin: 0 0 20px; }
+p, li { line-height: 1.7; } li + li { margin-top: 8px; }
+header { margin-bottom: 30px; }
+.eyebrow { color: #79d5c0; font-size: 12px; letter-spacing: 2px; }
+.panel { background: #1a212b; border: 1px solid #344150; border-radius: 12px; padding: 24px; margin: 20px 0; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+label { display: grid; gap: 8px; }
+input, select, button { font: inherit; border-radius: 7px; border: 1px solid #526274; padding: 11px 14px; color: inherit; background: #252f3c; }
+input, select { width: 100%; min-width: 0; }
+button { cursor: pointer; } button:disabled { opacity: .5; cursor: wait; }
+button:hover { border-color: #79d5c0; } .primary { background: #79d5c0; color: #102820; font-weight: 700; }
+.muted { color: #a8b6c6; font-size: 14px; }
+.error { background: #512b30; border: 1px solid #cb7b85; padding: 16px; border-radius: 8px; }
+.participants { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.participant { border: 2px solid #3b495a; padding: 20px; border-radius: 10px; display: grid; gap: 12px; }
+.participant.speaking { border-color: #79d5c0; background: #203932; }
+.participant span { color: #a8b6c6; font-size: 14px; }
+.room-heading { display: flex; gap: 16px; justify-content: space-between; align-items: center; }
+.table-scroll { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #344150; white-space: nowrap; }
+.lk-control-bar { border: 1px solid #344150; border-radius: 10px; }
+@media (max-width: 650px) { .form-grid { grid-template-columns: 1fr; } .panel { padding: 18px; } .room-heading { align-items: flex-start; flex-direction: column; } }
