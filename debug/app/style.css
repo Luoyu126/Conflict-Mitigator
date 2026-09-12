@@ -24,3 +24,26 @@ button:hover { border-color: #79d5c0; } .primary { background: #79d5c0; color: #
 th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid #344150; white-space: nowrap; }
 .lk-control-bar { border: 1px solid #344150; border-radius: 10px; }
 @media (max-width: 650px) { .form-grid { grid-template-columns: 1fr; } .panel { padding: 18px; } .room-heading { align-items: flex-start; flex-direction: column; } }
+
+.vad-panel { margin-top: 18px; padding: 16px; background: #101923; border: 1px solid #344b60; border-radius: 12px; min-width: 0; }
+.vad-heading, .vad-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.vad-badge { border: 1px solid #876827; border-radius: 20px; padding: 3px 9px; color: #fbbf24 !important; font-size: 11px !important; }
+.vad-interaction { touch-action: none; cursor: grab; border-radius: 8px; }
+.vad-interaction:active { cursor: grabbing; }
+.vad-interaction:focus-visible { outline: 2px solid #7dd3fc; }
+.vad-interaction svg { width: 100%; height: auto; max-height: 400px; display: block; user-select: none; }
+.vad-interaction text { font-size: 12px; }
+.vad-tools span { font-size: 11px; } .vad-tools button { font-size: 12px; padding: 6px 9px; }
+.vad-coordinates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 16px; }
+.vad-coordinates > div { background: #1b2937; padding: 10px 6px; border-radius: 7px; text-align: center; }
+.vad-coordinates span { display: block; font-size: 10px; } .vad-coordinates strong { display: block; font-size: 21px; font-variant-numeric: tabular-nums; margin-top: 5px; }
+.vad-intensity { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-top: 16px; }
+.vad-intensity output { color: #6ee7b7; font-size: 30px; font-variant-numeric: tabular-nums; }
+.vad-intensity meter { grid-column: 1 / -1; width: 100%; }
+.vad-panel details { border-top: 1px solid #344150; padding-top: 12px; } .vad-panel summary { cursor: pointer; }
+
+.vad-overlay { position: relative; background: rgb(11 19 29 / 72%); border: 1px solid rgb(148 163 184 / 25%); border-radius: 8px; overflow: hidden; }
+.vad-overlay-caption { position: absolute; top: 5px; left: 7px; color: #cbd5e1 !important; font-size: 9px !important; pointer-events: none; }
+.vad-overlay .vad-interaction text { font-size: 23px; }
+.vad-overlay .vad-interaction svg { max-height: none; }
+.vad-inline { position: relative; max-width: 640px; margin: 12px auto; background: #0b131d; border: 1px solid #344b60; border-radius: 10px; }

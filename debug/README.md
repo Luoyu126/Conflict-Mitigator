@@ -3,14 +3,15 @@
 独立的临时 Next.js 应用，验证 LiveKit 官方 React 组件的多人语音、连接耗时和音质。
 使用 `LiveKitRoom`、`RoomAudioRenderer`、`ControlBar`、`StartAudio` 及参与者 Hooks。
 本目录是用户明确要求的实验环境，不实现或替代 `docs/api/` 的正式业务接口。
-不连接数据库、Supabase、STT 或 AI Worker，不录音或保存音频。
+通话页不连接数据库、Supabase、STT 或 AI Worker，不录音或保存音频。
+独立的 `/emotion` 页面通过 Hume EVI 分析语音，配置与使用方式见下文。
 
 ## 启动
 
 需要 Node.js 22.18+ 或 24。另一台电脑首次使用时：
 
 ```bash
-git clone --branch debug --single-branch https://github.com/Luoyu126/Conflict-Mitigator.git
+git clone --branch feat/hume-voice-emotion --single-branch https://github.com/Luoyu126/Conflict-Mitigator.git
 cd Conflict-Mitigator
 ```
 
@@ -92,3 +93,54 @@ npm run lint
 官方文档：[LiveKitRoom](https://docs.livekit.io/reference/components/react/component/livekitroom/)、
 [RoomAudioRenderer](https://docs.livekit.io/reference/components/react/component/roomaudiorenderer/)、
 [麦克风发布](https://docs.livekit.io/transport/media/publish/)。
+
+## Hume EVI 实时语音情绪实验
+
+打开 **http://localhost:3001/emotion**，也可从首页顶部进入。无需加入 LiveKit 房间。
+运行 `npm --prefix debug run dev` 会同时启动 Next.js（127.0.0.1:3001）和
+Hume WebSocket 转发（127.0.0.1:3002）。本页使用独立麦克风采集；停止或离开页面会释放设备并断开分析。
+
+1. 在 `debug/.env.hume.local` 配置 `HUME_API_KEY`、`HUME_CONFIG_ID`，参考 `hume-env.example`。
+   此文件被 Git 忽略。当前转发使用 API key 鉴权，不使用 secret key，也不把凭证发给浏览器。
+2. 点击“开始语音情绪测试”，允许麦克风。建议先说英文完整句子，再停顿一下。
+3. 页面随 EVI `user_message` 事件显示转写、VAD 三维图、可展开的 48 个原始字段和最近 20 个完整片段。
+4. 点击“停止分析”结束本轮；每轮最多 5 分钟。切换采集设备需先停止，再在浏览器设置中选择后重开。
+
+音频由 AudioWorklet 转为单声道 16-bit little-endian PCM，约每 100ms 发送一次；
+按 AudioContext 实际采样率配置 Hume。转发使用专用 EVI 3 配置，不向浏览器转发 AI 回复。
+本次对照测试中，发送 `pause_assistant_message` 后未获得语音结果，取消暂停后获得 48 项分数；
+因此当前不暂停上游生成，可能产生 AI 回复对应的 EVI 用量，但不播放或展示这些回复。
+密钥只留服务端，转发限制本机来源、消息大小、连接数及发送积压。
+如果通过 SSH 使用网页，需要同时转发 3001 和 3002 两个端口。
+
+本实验会向 Hume 发送音频并产生 EVI 用量；Hume 会处理转写与情绪，其留存遵循供应商账户设置和政策。
+本应用仅在内存中处理音频和结果，不写入数据库或录音文件，不修改正式 STT / 节点 API。
+分数不等于真实心理状态、概率百分比或节点争议程度，缺少分数不等于平静。
+EVI 可能先返回无情绪的转写事件，之后才返回带情绪的片段；页面如实显示缺失。
+
+真实浏览器端到端联调已从公开英文音频获得并显示 48 项真实情绪分数；中文样本暂未返回结果，不能承诺中文效果。
+原 Expression Measurement `/v0/stream/models` 与 `/v0/batch/jobs` 在实测中返回已停用的 403，故使用 EVI。
+页面显示的是收到事件的时间和供应商片段时间，不将两者相减冒充模型推理耗时。
+
+验证：`npm --prefix debug test`、`npm --prefix debug run typecheck`、
+`npm --prefix debug run build -- --webpack`。当前环境默认 Turbopack 构建的 CSS 子进程端口受限，
+webpack 构建已通过。浏览器另验证了音频发送、情绪显示和停止后轨道进入 ended 状态。
+
+官方协议参考：[EVI 音频输入](https://github.com/HumeAI/hume-typescript-sdk/blob/main/src/api/resources/empathicVoice/types/AudioInput.ts)、
+[暂停回复](https://github.com/HumeAI/hume-typescript-sdk/blob/main/src/api/resources/empathicVoice/types/PauseAssistantMessage.ts)、
+[情绪字段](https://github.com/HumeAI/hume-typescript-sdk/blob/main/src/serialization/resources/empathicVoice/types/EmotionScores.ts)。
+
+### 语音 VAD 三维展示
+
+`/emotion` 使用从 video 实验中提取的通用 `VadPlot`，在页面内显示可旋转三维图、三轴坐标、实验强度及短期轨迹。
+X 为正负倾向 [-1,1]，Y 为激活 [0,1]，Z 为掌控感 [-1,1]。
+48 项 Hume 分数按总和归一化，对 `VOICE_VAD_ANCHORS` 的参考坐标加权，版本为
+`hume-vad-experiment-v1`。Anger / Fear / Disgust / Sadness / Joy 沿用 video 对应类别的参考点，
+Calmness 采用 video 的中性原点；其余参考点也是公开可调整的设计参数。
+这不是 Hume 直接测量的 VAD，也不是经训练或校准的心理量表，两种来源的数值不能当作已校准测量互换。
+
+只使用完整语音片段更新坐标；临时转写不会覆盖仍有效的坐标。完整片段缺少任意字段、
+出现重复或未知字段、无效数值、全零时显示未知。原始 48 项分数保留在折叠详情中。
+超过 6 秒未收到新有效完整片段会隐藏向量和数值；此计时基于浏览器接收时刻，不冒充音频采样时刻。
+停止、断线、重新开始时不继续展示旧向量为当前情绪。轨迹沿用 video 的 30 秒 / 24 点上限，
+过期断点不连线；400ms 插值只用于动画。映射和图表完全在本地执行，不增加外部请求或正式 API 字段。

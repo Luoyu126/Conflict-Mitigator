@@ -1,0 +1,6 @@
+# Save as debug/.env.hume.local (ignored by Git). Never use NEXT_PUBLIC_ keys.
+HUME_API_KEY=replace-with-your-api-key
+# Optional EVI configuration. This experiment uses a dedicated EVI 3 config.
+HUME_CONFIG_ID=replace-with-your-config-id
+# Secret is only needed for OAuth, not the current server-side WebSocket.
+HUME_SECRET_KEY=replace-with-your-secret-key
