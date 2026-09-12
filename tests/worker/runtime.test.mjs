@@ -65,6 +65,29 @@ test("fresh consent starts one existing-track voice stream and withdrawal aborts
   voiceOptions.onResult({status:"unavailable"});await delay(20);assert.equal(f.posts.length,1);
 });
 
+test("queued voice results retain callback sample time while later PCM advances",async t=>{
+  const f=fixture();f.context.participants[0].voiceAffectConsent=true;let opts;
+  const release=deferred();
+  f.transport.post=async(path,body)=>{f.posts.push({path,body:structuredClone(body)});if(f.posts.length===1)await release.promise;};
+  t.after(()=>release.resolve());
+  await start(t,f,{voice:options=>{opts=options;return{write:()=>true,close(){}};}});
+  await until(()=>f.audio.length===1);
+  const result={status:"unavailable",reason:"model_unavailable",intensity:null,confidence:null,inferenceMs:null,scores:[],vad:null,model:{provider:"Hume",name:"EVI",version:null}};
+  f.audio[0].onFrame(new Int16Array([0]));opts.onResult(result);
+  await until(()=>f.posts.length===1);
+  await delay(10);
+  f.audio[0].onFrame(new Int16Array([1]));opts.onResult(result);
+  const callbackSampleUpperBound=Date.now()-Date.parse(f.context.room.mediaEpochAt);
+  await delay(20);
+  f.audio[0].onFrame(new Int16Array([2]));
+  const laterPcmLowerBound=Date.now()-Date.parse(f.context.room.mediaEpochAt)-1;
+  release.resolve();await until(()=>f.posts.length===2);
+  const second=f.posts[1].body.metadata;
+  assert.ok(second.sampledAtMs<=callbackSampleUpperBound,"queued result must not borrow a future PCM timestamp");
+  assert.ok(second.sampledAtMs<laterPcmLowerBound);
+  assert.notEqual(second.observationId,f.posts[0].body.metadata.observationId);
+});
+
 test("voice provider loss publishes unavailable before closing its audio reader",async t=>{
   const f=fixture();f.context.participants[0].voiceAffectConsent=true;let opts;
   await start(t,f,{voice:options=>{opts=options;return{write:()=>true,close(){}};}});

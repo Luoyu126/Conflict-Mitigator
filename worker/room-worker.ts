@@ -206,16 +206,19 @@ export class RoomWorker {
     const providerSignal = AbortSignal.any([controller.signal, provider.signal]);
     const epoch = Date.parse(this.contextValue?.room.mediaEpochAt ?? "");
     let lastFrameRoomMs: number | null = null;
-    const outbox = new LatestOnly<Omit<AffectResult, "observationId">>(async result => {
+    const outbox = new LatestOnly<{ result: Omit<AffectResult, "observationId">; sampledAtMs: number | null; observationId: string }>(async observation => {
       if (!this.live(pub, revision)) return;
-      const observationId = randomUUID();
-      // Receiver-relative estimate from the latest consumed PCM frame, not capture time or inference latency.
+      const { result, sampledAtMs, observationId } = observation;
+      // Freeze receiver-relative timing when the provider callback arrives, before any upload queue delay.
       const metadata = { observationId, roomId: this.options.roomId, participantIdentity: pub.identity, trackSid: pub.sid,
-        streamId, sampledAtMs: lastFrameRoomMs, consentRevision: revision };
+        streamId, sampledAtMs, consentRevision: revision };
       await this.options.transport.post("affect-observations", { source: "voice", metadata, result: { ...result, observationId } }, controller.signal);
     }, controller.signal);
     const stream = (this.options.voice ?? createHumeStream)({ sampleRate: 24_000, signal: providerSignal,
-      onResult: result => { if (result.status === "ok") this.failures.delete("audio"); outbox.offer(result); }, onError: () => { this.failures.add("audio"); this.log("Voice provider unavailable; stream will reconnect after backoff."); provider.abort(); } });
+      onResult: result => {
+        if (result.status === "ok") this.failures.delete("audio");
+        outbox.offer({ result, sampledAtMs: lastFrameRoomMs, observationId: randomUUID() });
+      }, onError: () => { this.failures.add("audio"); this.log("Voice provider unavailable; stream will reconnect after backoff."); provider.abort(); } });
     try {
       await this.options.media.audio(pub, providerSignal, frame => {
         if (!this.live(pub, revision)) { controller.abort(); return; }
