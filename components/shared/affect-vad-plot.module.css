@@ -1,0 +1,34 @@
+.panel {
+  min-width: 0;
+  margin-block: .75rem;
+  padding: .85rem;
+  border: 1px solid #dcdfd3;
+  border-radius: .85rem;
+  color: #30392f;
+  background: #f7f7f1;
+  font: inherit;
+}
+.heading, .tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.heading h4 { margin: 0; font-size: .8rem; font-weight: 600; }
+.badge { padding: .2rem .45rem; border: 1px solid #d5d8ca; border-radius: 99px; color: #61684f; font-size: .6rem; }
+.interaction { touch-action: none; cursor: grab; border-radius: .5rem; margin-block: .25rem; }
+.interaction:active { cursor: grabbing; }
+.interaction:focus-visible, .tools button:focus-visible { outline: 2px solid #4d7358; outline-offset: 3px; }
+.interaction svg { display: block; width: 100%; height: auto; max-height: 300px; user-select: none; }
+.interaction text { font-family: inherit; font-size: 15px; }
+.grid { stroke: #e0e3d8; stroke-width: 1; }
+.marker { fill: #3f7253; }
+.vector { stroke: #3f7253; stroke-width: 2; }
+.height { stroke: #688774; stroke-width: 1; stroke-dasharray: 4 4; }
+.trail { fill: none; stroke: #688774; stroke-width: 1.5; opacity: .5; }
+.unknown { fill: #66715e; }
+.tools { font-size: .62rem; color: #66705f; }
+.tools button { cursor: pointer; font: inherit; padding: .3rem .55rem; border: 1px solid #d4d9cb; border-radius: 99px; background: #fffef9; color: #394f3b; }
+.tools button:hover { background: #e8ecdf; }
+.coordinates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; margin: .75rem 0; }
+.coordinates div { padding: .45rem .2rem; background: #eef0e7; border-radius: .45rem; text-align: center; }
+.coordinates dt { font-size: .6rem; overflow-wrap: anywhere; }
+.coordinates dt span { display: block; color: #697363; font-size: .55rem; }
+.coordinates dd { margin: .2rem 0 0; font-size: .95rem; font-variant-numeric: tabular-nums; }
+.panel .status, .panel .caption { margin: .5rem 0 0; color: #626c5b; font-size: .62rem; line-height: 1.5; }
+.version { display: block; overflow-wrap: anywhere; font-size: .55rem; color: #717969; }
