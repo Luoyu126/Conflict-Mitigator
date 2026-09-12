@@ -1,5 +1,5 @@
 import { requireServiceToken, requireWorkerRunId } from "@/lib/server/auth.ts";
-import { getDatabase } from "@/lib/db/postgres.ts";
+import { withTransaction } from "@/lib/db/postgres.ts";
 import { routeResponse } from "@/lib/server/http.ts";
 import { ApiProblem } from "@/lib/server/errors.ts";
 import { parseUuid } from "@/lib/server/validation.ts";
@@ -11,7 +11,7 @@ export async function POST(request: Request, context: Context): Promise<Response
     requireServiceToken(request, "WORKER_SERVICE_TOKEN");
     const runId = requireWorkerRunId(request);
     const roomId = parseUuid((await context.params).roomId, "roomId");
-    await requireWorkerLeaseForRoute(getDatabase(), roomId, runId);
+    await withTransaction((tx) => requireWorkerLeaseForRoute(tx, roomId, runId));
     throw new ApiProblem({ status: 409, code: "FEATURE_DISABLED", message: "Visual affect analysis is disabled for this product version." });
   });
 }
