@@ -32,7 +32,7 @@ Next.js 提供页面、业务 API 和受服务凭证保护的 API-27 图像推�
 
 `APP_ORIGIN` 指向 Next.js；`INFERENCE_ORIGIN` 默认相同。Worker 和 Next.js 必须使用一致的内部服务令牌、LiveKit 配置和数据库。生产环境请由进程管理器同时托管 web 与 Worker，并配置 LiveKit webhook 指向 `/api/webhooks/livekit`。
 
-缺少 Hume、Face++ 或 Gemini 配置时，相应分析不可用。Gemini 在首次调用时验证所配置模型是否存在并支持生成，不会静默换模型。浏览器转写依赖支持对既有音轨进行识别的 Web Speech API；不支持时页面提示不可用，不创建额外麦克风或伪造转写。
+缺少 Hume、Face++ 或 Gemini 配置时，相应分析不可用。Gemini 在首次调用时验证所配置模型是否存在并支持生成，不会静默换模型。浏览器转写使用既有音轨，目前保守支持桌面 Chrome/Chromium 135+（Windows/macOS/Linux，默认功能配置）；其他浏览器显示不可用，不另开麦克风或伪造转写。
 
 ## 验证
 

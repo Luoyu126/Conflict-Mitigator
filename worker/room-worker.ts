@@ -302,7 +302,7 @@ export class RoomWorker {
       .finally(() => { controller.abort(); this.signal.removeEventListener("abort", abort); this.analysisController = undefined; this.analysisContext = undefined; this.analysisTask = undefined; });
   }
   private async analyze(snapshot: WorkerContext, controller: AbortController) {
-    const input: AnalyzerInput = { nodes: snapshot.nodes, participantStates: snapshot.participantStates,
+    const input: AnalyzerInput = { mediaEpochAt: snapshot.room.mediaEpochAt, nodes: snapshot.nodes, participantStates: snapshot.participantStates,
       pendingTranscripts: snapshot.pendingTranscripts, recentAffectObservations: snapshot.recentAffectObservations };
     const analyze = this.options.analyze ?? ((value, signal) => analyzeMeeting(value, prompt => generateJson(prompt, undefined, { signal })));
     const timeout = setTimeout(() => controller.abort(), 25_000);

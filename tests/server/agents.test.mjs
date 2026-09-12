@@ -73,3 +73,23 @@ test("private mediator returns a reply plus structured extraction", async () => 
   assert.equal(result.reply, "That makes sense.");
   assert.equal(result.structured.underlyingConcerns[0], "Crash risk");
 });
+
+test("analysis pairs emotion evidence using original reception time rather than delayed insertion", async () => {
+  const epoch = "2026-09-12T00:00:00.000Z";
+  const observations = [
+    { id: "matched", participantId: "p1", sampledAtMs: 1000, result: { status: "ok" } },
+    { id: "too-late", participantId: "p1", sampledAtMs: 15000, result: { status: "ok" } },
+    { id: "other-speaker", participantId: "p2", sampledAtMs: 1000, result: { status: "ok" } },
+    { id: "unknown", participantId: "p1", sampledAtMs: null, result: { status: "ok" } },
+  ];
+  await analyzeMeeting({ nodes: [], participantStates: [], mediaEpochAt: epoch,
+    recentAffectObservations: observations,
+    pendingTranscripts: [{ id: "t1", participantId: "p1", content: "Evidence", receivedAt: "2026-09-12T00:00:01.000Z", createdAt: "2026-09-12T00:00:15.000Z" },
+      { id: "t2", participantId: "p1", content: "Unknown time" }],
+  }, async prompt => {
+    const input = JSON.parse(prompt.split("Input JSON: ")[1]);
+    assert.deepEqual(input.pendingTranscripts[0].eligibleAffectObservationIds, ["matched"]);
+    assert.deepEqual(input.pendingTranscripts[1].eligibleAffectObservationIds, []);
+    return { nodeUpserts: [] };
+  });
+});

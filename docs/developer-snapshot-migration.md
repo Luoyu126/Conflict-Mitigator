@@ -1,5 +1,42 @@
 # Developer snapshot migration
 
+## Execution status (2026-09-12)
+
+The user approved execution, parallel module work, and owner-only emotion results
+with authorized backend analysis. The original snapshot remains preserved on
+`chore/import-developer-snapshot`; the integration branch is
+`feat/migration-foundation`.
+
+| Stage | Integrated commits | Outcome |
+|---|---|---|
+| Backend and shared contracts | `c8c81d79` through `71b6b437` | Authenticated APIs, migration 003, separate consents, shared media lifecycle, transactional Worker and mediation safeguards; accepted foundation fast-forwarded to local main. |
+| Emotion modules | `e572807f`, `acecc713`, `cb799df7` | Hume adapter, Face++ inference, shared VAD presentation; preserves modality-specific scores and experimental mappings. |
+| Backend runtime integration | `adb5ddf2`, `f977f48c` | Enabled private observation ingest, evidence checks, maintenance and a runnable LiveKit Worker with lease/control fencing. |
+| HTTP acceptance | `0c6ff126` | Real Next.js handlers with local fake auth and disposable PostgreSQL. |
+| Primary frontend | `98a11727` | feature/frontend design and copy, real UUID meeting/lobby/private workflows, independently consented media and owner-only result panels. |
+
+The resulting source is integrated incrementally into **local main** after combined
+acceptance. No remote push or deployment is part of this execution. Existing local
+ZIP/debug content and environment files are preserved. SQL migrations were applied
+only to an isolated temporary PostgreSQL database, not the user's shared database.
+
+Validation at module integration: 72 server tests, 10 media tests and 16 Worker tests
+passed without skips; TypeScript, ESLint and the complete production webpack build
+passed. All 6 HTTP tests passed, verifying owner-only reads and consent withdrawal. Browser
+acceptance uses mocked API/auth responses and covers create, lobby, live transcript
+and map, isolated private chat, idempotent retry and versioned resume. Reproducible
+HTTP and browser acceptance scripts live under `tests/`.
+
+Remaining environment acceptance: configure real Supabase/LiveKit/provider accounts,
+apply migrations to the chosen database, run both processes, and verify real two-person
+camera/audio, browser speech support, Chinese voice quality, provider failures and
+media isolation. No claim of successful live Face++, Hume or Gemini calls is made.
+See [README](../README.md) for configuration, startup and current limitations.
+
+The following sections preserve the original source inventory and planning rationale.
+Statements about features being absent describe the **pre-migration snapshot**;
+the execution status above and [multimodal v0.3](api/multimodal-v0.3.md) are current.
+
 ## Source and preservation
 
 - Import branch: `chore/import-developer-snapshot`.
@@ -173,7 +210,7 @@ emotion-analysis streams, reject stale in-flight results, and prevent shared
 media re-entry until authorized. Leaving/ending must release devices and provider
 connections. Verify the primary frontend design and copy after all modules join.
 
-## Known follow-up work
+## Pre-migration findings (historical)
 
 - The snapshot contains packet normalization and a meeting-analysis function, but
   the inspection did not locate a running Worker entry point, its LiveKit packet
@@ -191,7 +228,7 @@ connections. Verify the primary frontend design and copy after all modules join.
   pending. Existing primary design and copy must be preserved during integration;
   contract conflicts that cannot be resolved from evidence require user judgment.
 
-## Validation status
+## Initial snapshot validation (historical)
 
 The extracted snapshot passed TypeScript (`--noEmit --incremental false`) and
 ESLint commands using its bundled dependencies during initial investigation.

@@ -151,9 +151,9 @@ export async function getWorkerContext(db: TransactionClient, roomId: string, ru
     s.supporting_reasons AS "supportingReasons", s.underlying_concerns AS "underlyingConcerns", s.emotion_intensity AS "emotionIntensity",
     s.view_of_others AS "viewOfOthers", s.acceptable_compromises AS "acceptableCompromises", s.updated_at AS "updatedAt"
     FROM participant_node_states s JOIN mind_map_nodes n ON n.id = s.node_id WHERE n.room_id = ${roomId}::uuid ORDER BY s.updated_at, s.id`;
-  const pending = await db<SegmentRow[]>`SELECT id, room_id AS "roomId", participant_id AS "participantId", content,
+  const pending = await db<(SegmentRow & { receivedAt: Date })[]>`SELECT id, room_id AS "roomId", participant_id AS "participantId", content,
     started_at_ms AS "startedAtMs", ended_at_ms AS "endedAtMs", is_final AS "isFinal", revision, stream_id::text AS "streamId",
-    source_track_sid AS "sourceTrackSid", language, confidence, created_at AS "createdAt", updated_at AS "updatedAt"
+    source_track_sid AS "sourceTrackSid", language, confidence, received_at AS "receivedAt", created_at AS "createdAt", updated_at AS "updatedAt"
     FROM transcript_segments WHERE room_id = ${roomId}::uuid AND is_final AND processed_at IS NULL ORDER BY created_at, id LIMIT 100`;
   const hasMore = await db<{ count: number }[]>`SELECT count(*)::int AS count FROM transcript_segments WHERE room_id = ${roomId}::uuid AND is_final AND processed_at IS NULL`;
   const isolation = await db<{ sessionId: string; targets: { participantId: string; livekitIdentity: string; revokeBeforeUnixSec: number }[] }[]>`
@@ -179,7 +179,7 @@ export async function getWorkerContext(db: TransactionClient, roomId: string, ru
   return {
     room: roomDto(roomRows[0]), mapVersion: mapRows[0]?.mapVersion ?? 0, recentAffectObservations: await getRecentAffect(db, roomId),
     participants, nodes: nodes.map(nodeDto), participantStates: participantStates.map(stateDto),
-    pendingTranscripts: pending.map(segmentDto), hasMorePendingTranscripts: hasMore[0].count > 100,
+    pendingTranscripts: pending.map(segment => ({ ...segmentDto(segment), receivedAt: segment.receivedAt.toISOString() })), hasMorePendingTranscripts: hasMore[0].count > 100,
     pendingIsolations, mediaCleanupTargets, deleteMediaRoom,
   };
 }

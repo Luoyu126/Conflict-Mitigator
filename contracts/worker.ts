@@ -32,7 +32,7 @@ export type WorkerContext = {
   participants: WorkerParticipant[];
   nodes: MindMapNode[];
   participantStates: ParticipantNodeState[];
-  pendingTranscripts: TranscriptSegment[];
+  pendingTranscripts: (TranscriptSegment & { receivedAt: string })[];
   hasMorePendingTranscripts: boolean;
   pendingIsolations: IsolationPlan[];
   mediaCleanupTargets: IsolationTarget[];

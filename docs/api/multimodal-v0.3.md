@@ -90,3 +90,12 @@ Worker maintenance runs every two seconds, closes expired proposals and cancels
 isolation that remains starting for 30 seconds, preserving pending cleanup. It
 deletes expired messages/results;
 application queries also enforce expiry when maintenance is delayed.
+
+### Worker analysis timing
+
+API-21 pending transcripts additionally include server-only `receivedAt`, preserving
+the original API-22 reception timestamp across retries. Public transcript DTOs are
+unchanged. Meeting analysis receives the room `mediaEpochAt` and a computed list of
+same-speaker `eligibleAffectObservationIds` per transcript within six seconds of
+that reception time. Unknown timing yields no eligible IDs. API-24 independently
+rechecks timing, ownership and current consent before accepting selected IDs.
