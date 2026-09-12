@@ -10,20 +10,20 @@ export function readGeminiConfig(): GeminiConfig {
 }
 
 /** Injectable model shape; production uses the Gemini REST SDK under the hood. */
-export type JsonModel = (prompt: string) => Promise<unknown>;
+export type JsonModel = (prompt: string, signal?: AbortSignal) => Promise<unknown>;
 
 export async function generateJson(
   prompt: string,
   config: GeminiConfig = readGeminiConfig(),
-  options: { temperature?: number; timeoutMs?: number } = {},
+  options: { temperature?: number; timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<unknown> {
   const ai = new GoogleGenAI({ apiKey: config.apiKey });
-  const signal = options.timeoutMs ? AbortSignal.timeout(options.timeoutMs) : undefined;
+  const timeoutSignal = options.timeoutMs ? AbortSignal.timeout(options.timeoutMs) : undefined;
+  const signal = options.signal && timeoutSignal ? AbortSignal.any([options.signal, timeoutSignal]) : options.signal ?? timeoutSignal;
   const response = await ai.models.generateContent({
     model: config.model,
     contents: prompt,
-    config: { responseMimeType: "application/json", temperature: options.temperature ?? 0.2 },
-    ...(signal ? { signal } : {}),
+    config: { responseMimeType: "application/json", temperature: options.temperature ?? 0.2, ...(signal ? { abortSignal: signal } : {}) },
   });
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty content.");

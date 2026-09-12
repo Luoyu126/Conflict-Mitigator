@@ -17,12 +17,13 @@ let sessionId = null;
 
 const agent = async () => ({
   reply: "I hear you. Let's find the shared concern.",
+  readyToResume: true,
   structured: { position: "Reduce scope", supportingReasons: [], underlyingConcerns: ["Reliability"], acceptableCompromises: ["Simplify"] },
 });
 
 test("full mediation lifecycle: propose → isolate → chat → resume", { skip: !process.env.DATABASE_URL }, async () => {
   const db = getDatabase();
-  await db`INSERT INTO rooms (id, title, created_by) VALUES (${roomId}::uuid, 'Lifecycle', ${hostUserId}::uuid)`;
+  await db`INSERT INTO rooms (id, title, created_by, status) VALUES (${roomId}::uuid, 'Lifecycle', ${hostUserId}::uuid, 'meeting')`;
   await db`INSERT INTO participants (id, room_id, auth_user_id, display_name, role, livekit_identity, transcription_consent, structured_sharing_consent) VALUES
     (${p1}::uuid, ${roomId}::uuid, ${hostUserId}::uuid, 'Host', 'host', ${p1}::text, true, true),
     (${p2}::uuid, ${roomId}::uuid, ${guest1UserId}::uuid, 'Guest1', 'participant', ${p2}::text, true, true),
@@ -41,10 +42,14 @@ test("full mediation lifecycle: propose → isolate → chat → resume", { skip
   assert.equal(last.session.session.status, "starting");
   assert.equal(last.session.roomStatus, "mediation");
 
-  const ack = await withTransaction((tx) => ackIsolation(tx, roomId, randomUUID(), { sessionId: sessionId, results: [
-    { participantId: p1, revokeBeforeUnixSec: 123, succeeded: true, errorCode: null },
-    { participantId: p2, revokeBeforeUnixSec: 123, succeeded: true, errorCode: null },
-    { participantId: p3, revokeBeforeUnixSec: 123, succeeded: true, errorCode: null },
+  const workerRunId = randomUUID();
+  await withTransaction(tx => upsertWorkerLease(tx, roomId, { runId: workerRunId, status: "ready", audio: "ready", video: "disabled", meetingAgent: "ready" }));
+  const cutoffs = await db`SELECT isolation_cutoff_unix_sec FROM mediation_members WHERE mediation_session_id=${sessionId}::uuid`;
+  const cutoff = Number(cutoffs[0].isolation_cutoff_unix_sec);
+  const ack = await withTransaction((tx) => ackIsolation(tx, roomId, workerRunId, { sessionId: sessionId, results: [
+    { participantId: p1, revokeBeforeUnixSec: cutoff, succeeded: true, errorCode: null },
+    { participantId: p2, revokeBeforeUnixSec: cutoff, succeeded: true, errorCode: null },
+    { participantId: p3, revokeBeforeUnixSec: cutoff, succeeded: true, errorCode: null },
   ] }));
   assert.equal(ack.session.status, "active");
   assert.equal(ack.node.status, "private_mediation");
@@ -67,10 +72,11 @@ test("full mediation lifecycle: propose → isolate → chat → resume", { skip
   await sendPrivateMessage(roomId, sessionId, guest1UserId, randomUUID(), "Reliability matters.", agent);
   await sendPrivateMessage(roomId, sessionId, guest2UserId, randomUUID(), "Keep the map stable.", agent);
 
-  const resumed = await withTransaction((tx) => recordResumeDecision(tx, roomId, sessionId, hostUserId, "accept", 1));
+  const summaryVersion = (await getMediationMe(roomId, sessionId, hostUserId)).session.summaryVersion;
+  const resumed = await withTransaction((tx) => recordResumeDecision(tx, roomId, sessionId, hostUserId, "accept", summaryVersion));
   assert.equal(resumed.session.status, "active");
-  await withTransaction((tx) => recordResumeDecision(tx, roomId, sessionId, guest1UserId, "accept", 1));
-  const done = await withTransaction((tx) => recordResumeDecision(tx, roomId, sessionId, guest2UserId, "accept", 1));
+  await withTransaction((tx) => recordResumeDecision(tx, roomId, sessionId, guest1UserId, "accept", summaryVersion));
+  const done = await withTransaction((tx) => recordResumeDecision(tx, roomId, sessionId, guest2UserId, "accept", summaryVersion));
   assert.equal(done.session.status, "completed");
   assert.equal(done.node.status, "normal");
   assert.equal(done.roomStatus, "meeting");
@@ -83,7 +89,7 @@ test("decline cancels the proposal and restores meeting state", { skip: !process
   const p4 = randomUUID();
   const p5 = randomUUID();
   const host2 = randomUUID();
-  await db`INSERT INTO rooms (id, title, created_by) VALUES (${room2}::uuid, 'Cancel', ${host2}::uuid)`;
+  await db`INSERT INTO rooms (id, title, created_by, status) VALUES (${room2}::uuid, 'Cancel', ${host2}::uuid, 'meeting')`;
   await db`INSERT INTO participants (id, room_id, auth_user_id, display_name, role, livekit_identity, transcription_consent, structured_sharing_consent) VALUES
     (${p4}::uuid, ${room2}::uuid, ${host2}::uuid, 'H', 'host', ${p4}::text, true, true),
     (${p5}::uuid, ${room2}::uuid, ${randomUUID()}::uuid, 'G', 'participant', ${p5}::text, true, true)`;
@@ -100,7 +106,7 @@ test("worker lease, context, transcript ingest and analysis auto-propose", { ski
   const runId = randomUUID();
   const pA = randomUUID();
   const pB = randomUUID();
-  await db`INSERT INTO rooms (id, title, created_by) VALUES (${roomId2}::uuid, 'Worker', ${runId}::uuid)`;
+  await db`INSERT INTO rooms (id, title, created_by, status) VALUES (${roomId2}::uuid, 'Worker', ${runId}::uuid, 'meeting')`;
   await db`INSERT INTO participants (id, room_id, auth_user_id, display_name, role, livekit_identity, transcription_consent, structured_sharing_consent) VALUES
     (${pA}::uuid, ${roomId2}::uuid, ${randomUUID()}::uuid, 'A', 'host', ${pA}::text, true, true),
     (${pB}::uuid, ${roomId2}::uuid, ${randomUUID()}::uuid, 'B', 'participant', ${pB}::text, true, true)`;

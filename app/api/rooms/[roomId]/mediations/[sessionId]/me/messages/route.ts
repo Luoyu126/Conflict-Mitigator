@@ -30,7 +30,7 @@ export async function POST(request: Request, context: Context): Promise<Response
     const roomId = parseUuid(params.roomId, "roomId");
     const sessionId = parseUuid(params.sessionId, "sessionId");
     const body = await parseJsonBody(request, sendMessageRequestSchema);
-    const result = await sendPrivateMessage(roomId, sessionId, user.id, body.clientMessageId, body.content);
+    const result = await sendPrivateMessage(roomId, sessionId, user.id, body.clientMessageId, body.content, undefined, { signal: request.signal });
     return successResponse(result.data, { status: result.status, requestId });
   });
 }
