@@ -1,42 +1,174 @@
 # Conflict Mitigator
 
-多人会议与私密调解应用。前端设计、文案和布局以 `feature/frontend` 为主，后端来自开发快照的分批迁移；摄像头与 Face++、语音与 Hume 通过同一个 LiveKit 媒体连接接入。
+**See the disagreement. Understand each other. Move forward together.**
 
-已实现创建/加入/退出会议、公共转写和讨论图、逐人同意、私密调解聊天、版本化共识确认，以及本人情绪面板。真实会议使用 UUID 路由；`/room/demo` 保留设计演示数据。
+*Live meeting · Shared mind map · Private mediation*
 
-摄像头、麦克风默认关闭。转写、结构化分析、视觉情绪、语音情绪分别征求同意。个人情绪结果仅本人和授权后端分析可见，不通过共享房间状态、Realtime 或讨论图向他人公开。视觉和语音分别展示，缺失或过期结果显示不可用；VAD 映射属于实验性估计。
+Conflict Mitigator is an AI-assisted collaboration platform that connects **live meetings, shared mind maps, and private mediation** in one continuous conversation flow. It helps teams see where disagreement is concentrated, understand what each person cares about, and find a path forward when discussion stalls.
 
-## 本地运行
+[Watch the demo](https://youtu.be/rfDvkXyBtYU) · [View the pitch deck](https://docs.google.com/presentation/d/1PluOAEnYJG7kB_uygz9-uQFo8DtgF0hUg4S-WyUy70M/edit) · [Try the local demo](#try-the-local-demo) · [Run a live meeting](#run-a-live-meeting)
 
-需要 Node.js 22.18+、PostgreSQL，以及 Supabase 匿名登录、LiveKit 和所需推理服务配置。浏览器设备权限需要 localhost 或 HTTPS。
+## The meeting keeps moving, but the decision does not
+
+The same positions repeat. Motives are misread. Tension around one issue spreads across the entire meeting. Even with a complete transcript, a team may finish without a shared understanding of the problem.
+
+Conflict Mitigator starts from a simple idea: **collaboration is both logical and emotional**. Topics, reasons, and possible solutions need structure. Concerns and misunderstandings need room to surface. The shared mind map gives the team a common model of the discussion, while private AI conversations give each participant space to reflect and clarify.
+
+The product is designed for product reviews, technical debates, retrospectives, and collaborative decision-making—anywhere a team needs a shorter path from circular discussion to an actionable decision.
+
+## A four-stage loop that helps discussion move again
+
+### 01 · Live Meeting — Turn conversation into a map
+
+Participants talk as usual. Within the permissions they choose, Conflict Mitigator receives finalized transcripts and organizes the conversation into evolving topics, summaries, and viewpoints. The shared mind map makes it easier to see what the team is discussing and how the issues relate.
+
+### 02 · Hot Node — Locate the disagreement
+
+When transcript evidence and topic analysis indicate sustained contention around a specific node, the system proposes mediation around that issue. The team can see exactly where the discussion is stuck, and every participant in the session decides whether to enter mediation.
+
+### 03 · Private Mediation — Give everyone space to clarify
+
+After everyone agrees and public media has been isolated, each participant speaks privately with their own AI mediator. The conversation helps surface positions, reasons, underlying concerns, and acceptable compromises. Raw private messages remain private; only consented structured insights contribute to the shared consensus tree.
+
+### 04 · Return — Resume with shared understanding
+
+Participants review a shared summary and choose when they are ready to return. The public meeting resumes only after everyone accepts the same summary version. If the summary changes, participants confirm again so the conversation restarts from a common foundation.
+
+**Human-to-human conversation remains the default.** AI support stays focused on the topic that needs help, while participants control whether mediation begins and when the meeting resumes. In the current implementation, a mediation proposal includes every active participant in the room.
+
+## Core experience
+
+| Capability | How it helps |
+| --- | --- |
+| **Live group meetings** | Create or join a room, choose analysis permissions before entry, and enable the microphone or camera when needed. |
+| **Chinese and English transcription** | Display finalized public speech transcripts in Mandarin Chinese or US English. |
+| **Interactive discussion map** | Organize public speech into topics, summaries, and viewpoints; inspect individual nodes and group related topics. |
+| **Contention detection and mediation proposals** | Use transcript evidence and topic analysis to propose focused mediation that participants can accept or decline. |
+| **Private one-to-one AI mediation** | Give every participant an independent space to clarify positions, reasons, concerns, and acceptable compromises. |
+| **Consensus-based return** | Align around a shared consensus tree and summary, then resume only after everyone confirms the same version. |
+| **Personal affect feedback** | With separate consent, show visual and vocal affect estimates privately to the participant who produced them. |
+
+### Interaction flow
+
+```mermaid
+flowchart LR
+    A[Join and choose permissions] --> B[Public transcript and mind map]
+    B --> C[Propose mediation around one topic]
+    C --> D{Everyone agrees to enter?}
+    D -->|Yes| E[Isolate public audio and video]
+    D -->|No| B
+    E --> F[Private AI conversations]
+    F --> G[Shared consensus tree and summary]
+    G --> H{Everyone confirms the same version?}
+    H -->|Keep clarifying| F
+    H -->|Resume| B
+```
+
+Affect scores alone never trigger mediation. A proposal requires supporting public transcript evidence and topic analysis.
+
+## Sharing stays under your control
+
+- **Devices start off.** Joining a room does not enable the camera or microphone, and it does not imply consent to analysis.
+- **Each purpose has separate consent.** Transcription, visual analysis, voice analysis, and structured sharing from private mediation are controlled independently and can be changed during a meeting.
+- **Private chat stays separate from public content.** Raw private messages never enter the public transcript or shared mind map. Only consented structured insights support shared understanding.
+- **Personal affect results are not shown to other participants.** Visual and vocal estimates are displayed separately and are visible only to their owner and authorized backend analysis. Missing or stale signals appear as unavailable.
+- **Public media pauses during mediation.** Private chat opens only after public audio and video have been isolated, and media analysis remains paused throughout mediation.
+
+The application does not store raw audio or camera images. Derived affect observations and private messages expire after 24 hours. Enabled analysis sends the relevant data to the browser speech service or configured AI providers, whose own terms govern provider-side retention. Affect feedback is a model-generated aid rather than a reading of someone's inner feelings; the VAD mapping is an experimental display only.
+
+## Try the local demo
+
+The demo requires **Node.js 22.18+**. From the repository root, run:
 
 ```bash
 npm ci
+npm run dev -- --webpack
+```
+
+Open [http://localhost:3000/room/demo](http://localhost:3000/room/demo) to explore the discussion map, transcript replay, and mediation interface. The demo uses fixtures included in the repository, so it does not require a database or AI service configuration. It demonstrates the interaction design without connecting a real multi-user meeting.
+
+## Run a live meeting
+
+Live meetings require PostgreSQL, Supabase anonymous authentication, LiveKit, and the relevant AI service configuration. Browser device access requires localhost or HTTPS.
+
+<details>
+<summary>Expand setup and launch instructions</summary>
+
+### 1. Configure services
+
+Install dependencies and copy the environment template:
+
+```bash
 cp .env.example .env.local
 ```
 
-填写 `.env.local`，不要提交密钥。开启 Supabase anonymous sign-in；浏览器只使用 `NEXT_PUBLIC_SUPABASE_*`。`DATABASE_URL` 必须指向同一业务数据库。按 [数据库说明](lib/db/README.md) 依次应用 001、002、003 迁移；应用启动不会自动修改数据库。
+Complete the values documented in [.env.example](.env.example):
 
-在两个终端分别启动：
+| Service | Purpose and configuration |
+| --- | --- |
+| Supabase and PostgreSQL | Enable Supabase anonymous sign-in and provide the public browser configuration and server credentials. `DATABASE_URL` must point to the same application database. |
+| LiveKit | Provides real-time audio and video. Configure `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET`. |
+| Meeting analysis model | Set `MEETING_MODEL_PROVIDER` to `gemini` (default) or `siliconflow`, then provide the selected provider's key and model configuration. |
+| Private mediation model | Private mediation uses Gemini. Gemini configuration is still required when SiliconFlow handles meeting analysis. |
+| Face++ and Hume | Provide optional visual and voice affect analysis, respectively. |
+| Internal service communication | Configure `WORKER_SERVICE_TOKEN` and `INFERENCE_SERVICE_TOKEN`. `APP_ORIGIN` points to the web application; `INFERENCE_ORIGIN` may use the same origin by default. |
+
+Keep all secrets on the server and never commit `.env.local`. Only the `NEXT_PUBLIC_SUPABASE_*` values belong in the browser bundle.
+
+### 2. Initialize the database
+
+Follow the [database guide](lib/db/README.md) and apply migrations `001`, `002`, and `003` in order. The application does not run migrations automatically. Back up an existing database and verify its migration history before applying changes.
+
+### 3. Start the web app and worker
+
+Run the following commands in separate terminals:
 
 ```bash
+# Terminal 1: pages and business APIs
 npm run dev -- --webpack
 ```
 
 ```bash
+# Terminal 2: persistent media processing and meeting analysis
 npm run worker:check
 npm run worker
 ```
 
-Next.js 提供页面、业务 API 和受服务凭证保护的 API-27 图像推理入口。常驻 Worker 负责会议发现、租约、LiveKit 订阅、转写、情绪分析、媒体隔离及过期清理；必须单独运行，不能依赖短生命周期 HTTP 请求。`worker:check` 仅检查配置与原生模块加载，不连接数据库或供应商，也不验证密钥有效性。
+Open [http://localhost:3000](http://localhost:3000), create a meeting, and invite other participants. The web application and worker must share the same database, LiveKit configuration, and internal service tokens.
 
-`APP_ORIGIN` 指向 Next.js；`INFERENCE_ORIGIN` 默认相同。Worker 和 Next.js 必须使用一致的内部服务令牌、LiveKit 配置和数据库。生产环境请由进程管理器同时托管 web 与 Worker，并配置 LiveKit webhook 指向 `/api/webhooks/livekit`。
+The worker handles media subscriptions, transcript ingestion, meeting and affect analysis, media isolation, and expiry cleanup. It must run as a persistent process. `worker:check` validates configuration and native module loading, but it does not connect to the database or verify provider credentials. In production, run both the web application and worker under process management and configure the LiveKit webhook at `/api/webhooks/livekit`.
 
-会议节点分析通过 `MEETING_MODEL_PROVIDER` 选择 `gemini`（默认）或 `siliconflow`。硅基流动使用服务端 `SILICONFLOW_API_KEY` 和 `SILICONFLOW_MODEL=Qwen/Qwen3.5-4B`，调用官方中国区接口，关闭思考模式并要求 JSON 输出；失败不会自动切换供应商。私密调解仍使用 Gemini。缺少所选供应商、Hume 或 Face++ 配置时，相应分析不可用。Gemini 在首次调用时验证所配置模型是否存在并支持生成，不会静默换模型。浏览器转写使用既有音轨，目前保守支持桌面 Chrome/Chromium 135+（Windows/macOS/Linux，默认功能配置）；其他浏览器显示不可用，不另开麦克风或伪造转写。
+</details>
 
-会议右侧的 **Transcription language · 转写语言** 可选择 **中文（普通话）**（`zh-CN`）或 **English (US)**（`en-US`），默认跟随浏览器语言。开启麦克风并同意转写后生效；切换语言会重启识别，请先说完并停顿，避免丢失尚未完成的句子。左侧只显示识别完成的句子，不逐字显示；此设置不依赖 Hume 情绪识别额度。
+### Current limitations
 
-## 验证
+- **Transcription compatibility:** The current conservative support target is desktop Chrome/Chromium 135+ on Windows, macOS, and Linux with default feature settings. Unsupported browsers report transcription as unavailable.
+- **Transcription languages:** The **Transcription language** control supports `zh-CN` and `en-US` and defaults to the browser language. Changing it restarts recognition, so finish speaking and pause first. Only finalized utterances appear in the public transcript.
+- **Generated content:** AI-generated topic labels and summaries are currently in English.
+- **Service availability:** Missing or failed providers appear as unavailable. The application does not silently switch providers, and Gemini validates the configured model on its first request.
+- **Validation scope:** The repository includes demo flows and automated tests. Simulated tests do not constitute end-to-end validation of real providers, multi-user media, or a production deployment.
+
+## Technology
+
+| Layer | Technology |
+| --- | --- |
+| UI and interaction | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Discussion map | React Flow (`@xyflow/react`) |
+| Media and transcript transport | LiveKit, WebRTC, browser Web Speech |
+| Identity, data, and state notifications | Supabase Auth, PostgreSQL, Supabase Realtime |
+| AI analysis | Google Gemini, SiliconFlow, Face++, Hume |
+| Background processing | Persistent Node.js worker |
+
+## Developer documentation
+
+- [Frontend business API](docs/api/frontend-api.md), [internal and media API](docs/api/internal-api.md), and [interaction flows](docs/api/interact-api.md) define the interfaces and business behavior.
+- [v0.2 decision overrides](docs/api/decision-overrides-v0.2.md) and the [v0.3 multimodal contract](docs/api/multimodal-v0.3.md) describe current implementation overrides. Where they conflict, v0.3 takes precedence.
+- The [database and migration guide](lib/db/README.md) covers initialization, migrations, and data-access boundaries.
+- The [HTTP test guide](tests/http/README.md) and [browser acceptance guide](tests/browser/README.md) describe validation scope and workflows.
+
+The main implementation lives in `app/`, `components/`, and `hooks/` for the UI; `contracts/`, `services/`, and `lib/db/` for business and data logic; and `lib/integrations/` and `worker/` for external services and background processing.
+
+Common validation commands:
 
 ```bash
 npm run lint
@@ -48,13 +180,4 @@ npm run test:http
 npm run build -- --webpack
 ```
 
-数据库测试必须设置指向已应用全部迁移的**独立测试数据库**的 `DATABASE_URL`；部分测试会在未设置时跳过。HTTP 测试启动本地 Next.js 和假身份服务，详见 [HTTP 测试说明](tests/http/README.md)。单元测试和浏览器模拟验收不代表真实供应商或双人音视频已经联调通过。
-
-## 代码与契约
-
-- `app/`、`hooks/`、`components/`：页面、浏览器生命周期与展示。
-- `contracts/`、`services/`、`lib/db/`：数据契约、业务授权、事务与迁移。
-- `lib/integrations/`、`worker/`：供应商适配及常驻媒体处理。
-- [前端 API](docs/api/frontend-api.md)、[内部 API](docs/api/internal-api.md)、[交互流程](docs/api/interact-api.md)：业务基线。
-- [多模态 v0.3](docs/api/multimodal-v0.3.md)：本次已确认的同意、数据访问、媒体隔离和情绪接口增量，覆盖旧文档中禁用摄像头等相关规定。
-- [迁移计划与进度](docs/developer-snapshot-migration.md)：来源、分工和阶段记录。
+Database-dependent tests should use a dedicated test database with all migrations applied. Some tests are skipped when the required database configuration is absent.
